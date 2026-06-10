@@ -36,8 +36,8 @@ const envSchema = z.object({
   QR_AES_KEY: z.string().length(32, 'QR_AES_KEY must be exactly 32 characters (256 bits)'),
   QR_HMAC_KEY: z.string().min(16, 'QR_HMAC_KEY must be at least 16 characters'),
 
-  SMTP_HOST: z.string().default('smtp.mailtrap.io'),
-  SMTP_PORT: z.coerce.number().default(2525),
+  SMTP_HOST: z.string().default('smtp.gmail.com'),
+  SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().default(''),
   SMTP_PASS: z.string().default(''),
   SMTP_FROM_EMAIL: z.string().email().default('noreply@university.edu'),
