@@ -2,6 +2,8 @@
 # Stage 1: Build stage
 FROM node:20-alpine AS builder
 
+RUN apk add --no-cache openssl
+
 WORKDIR /usr/src/app
 
 COPY package*.json ./
@@ -17,6 +19,8 @@ RUN npm run build
 # Stage 2: Production stage
 FROM node:20-alpine AS runner
 
+RUN apk add --no-cache openssl
+
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
@@ -28,4 +32,4 @@ COPY --from=builder /usr/src/app/prisma ./prisma
 
 EXPOSE 5000
 
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:prod"]
