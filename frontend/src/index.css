@@ -1,0 +1,155 @@
+:root {
+  --text: #334155;             /* High contrast slate text */
+  --text-h: #0f172a;           /* Deep slate heading text */
+  --bg: #f8fafc;               /* Light slate background */
+  --border: #e2e8f0;
+  --code-bg: #f1f5f9;
+  --accent: #002147;
+  --accent-bg: rgba(0, 33, 71, 0.05);
+  --accent-border: rgba(0, 33, 71, 0.25);
+  --social-bg: rgba(241, 245, 249, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.05) 0 10px 15px -3px, rgba(0, 0, 0, 0.02) 0 4px 6px -2px;
+
+  --sans: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --heading: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+.print-only {
+  display: none;
+}
+
+/* ─── PRINT CSS STYLING ─── */
+@media print {
+  /* Hide UI chrome, navigation, buttons, and audit logs */
+  aside,
+  header,
+  .sidebar,
+  .dashboard-header,
+  .quick-actions-card,
+  .scans-log-card,
+  .no-print,
+  button,
+  .btn,
+  .mobile-menu-trigger,
+  .dashboard-header-actions {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* Reset layout boxes and center the ticket pass details */
+  body, html {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .dashboard-layout {
+    display: block !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    min-height: auto !important;
+  }
+
+  .dashboard-content-wrapper,
+  .dashboard-main-content {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure text elements print in black for contrast */
+  h2, h3, h4, h5, span, p, label, td, th, strong {
+    color: #000000 !important;
+  }
+
+  /* Force display of high contrast details */
+  img {
+    filter: none !important;
+  }
+
+  /* Ensure QR Code and ID photo print nicely */
+  .qr-box {
+    border: 1px solid #cccccc !important;
+    background-color: #ffffff !important;
+  }
+}

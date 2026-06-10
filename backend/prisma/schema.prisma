@@ -1,0 +1,370 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ───────────────────────────────────────────────────
+
+enum UserRole {
+  VISITOR
+  STUDENT
+  FACULTY
+  STAFF
+  SECURITY_GUARD
+  HOSTEL_WARDEN
+  SECURITY_ADMIN
+  UNIVERSITY_ADMIN
+  SUPER_ADMIN
+}
+
+enum PassType {
+  VISITOR
+  HOSTEL_GUEST
+  VEHICLE
+  EVENT
+  CONTRACTOR
+  PARENT
+}
+
+enum PassStatus {
+  DRAFT
+  SUBMITTED
+  PENDING_APPROVAL
+  APPROVED
+  ACTIVE
+  EXPIRED
+  REJECTED
+  REVOKED
+  USED
+  SUSPENDED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ESCALATED
+}
+
+enum VehicleType {
+  TWO_WHEELER
+  FOUR_WHEELER
+  TRUCK
+  BUS
+  OTHER
+}
+
+enum IdType {
+  AADHAAR
+  PASSPORT
+  DRIVING_LICENSE
+  VOTER_ID
+  PAN_CARD
+  OTHER
+}
+
+enum VisitorCategory {
+  GENERAL
+  ACADEMIC
+  GOVERNMENT
+  VIP
+  CONTRACTOR
+  VENDOR
+  PARENT
+  MEDICAL
+}
+
+enum LogType {
+  ENTRY
+  EXIT
+}
+
+enum NotificationType {
+  PASS_CREATED
+  PASS_APPROVED
+  PASS_REJECTED
+  PASS_REVOKED
+  PASS_EXPIRY_WARNING
+  VISITOR_ENTERED
+  VISITOR_EXITED
+  LOCKDOWN
+  SECURITY_ALERT
+  SYSTEM
+}
+
+// ─── MODELS ──────────────────────────────────────────────────
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  passwordHash   String
+  universityId   String?   @unique
+  firstName      String
+  lastName       String
+  phone          String
+  photoUrl       String?
+  role           UserRole  @default(STUDENT)
+  isActive       Boolean   @default(true)
+  mfaEnabled     Boolean   @default(false)
+  mfaSecret      String?
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  passes          Pass[]         @relation("PassRequester")
+  approvals       Approval[]
+  guardedLogs     EntryLog[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  refreshTokens   RefreshToken[]
+  vehicles        Vehicle[]
+  createdEvents   Event[]
+  hostelApprovals HostelGuest[]  @relation("WardenApprovals")
+
+  @@index([email])
+  @@index([universityId])
+  @@index([role])
+  @@index([isActive])
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  userId     String
+  tokenHash  String   @unique
+  family     String
+  isRevoked  Boolean  @default(false)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([family])
+  @@map("refresh_tokens")
+}
+
+model Visitor {
+  id              String          @id @default(uuid())
+  name            String
+  phone           String          @unique
+  email           String?
+  idType          IdType
+  idNumber        String          @unique
+  idPhotoKey      String?
+  category        VisitorCategory @default(GENERAL)
+  blacklisted     Boolean         @default(false)
+  blacklistReason String?
+  lastVisitAt     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  passes Pass[]
+
+  @@index([phone])
+  @@index([idNumber])
+  @@index([blacklisted])
+  @@map("visitors")
+}
+
+model Pass {
+  id            String     @id @default(uuid())
+  requesterId   String
+  visitorId     String
+  eventId       String?
+  passNumber    String     @unique
+  passType      PassType
+  status        PassStatus @default(PENDING_APPROVAL)
+  purpose       String
+  notes         String?
+  validFrom     DateTime
+  validTo       DateTime
+  allowedGates  String[]
+  isMultiEntry  Boolean    @default(false)
+  qrToken       String?    @unique
+  qrImageKey    String?
+  createdByName String?
+  creatorDept   String?
+  comingFrom    String?
+  approvedAt    DateTime?
+  revokedAt     DateTime?
+  revokedReason String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  requester   User          @relation("PassRequester", fields: [requesterId], references: [id])
+  visitor     Visitor       @relation(fields: [visitorId], references: [id])
+  event       Event?        @relation(fields: [eventId], references: [id])
+  approvals   Approval[]
+  entryLogs   EntryLog[]
+  vehiclePass VehiclePass?
+  hostelGuest HostelGuest?
+  notifications Notification[]
+
+  @@index([requesterId])
+  @@index([visitorId])
+  @@index([status])
+  @@index([validFrom, validTo])
+  @@index([passNumber])
+  @@map("passes")
+}
+
+model Approval {
+  id            String         @id @default(uuid())
+  passId        String
+  approverId    String
+  approvalLevel Int            @default(1)
+  status        ApprovalStatus @default(PENDING)
+  remarks       String?
+  decidedAt     DateTime?
+  createdAt     DateTime       @default(now())
+
+  pass     Pass @relation(fields: [passId], references: [id], onDelete: Cascade)
+  approver User @relation(fields: [approverId], references: [id])
+
+  @@index([passId])
+  @@index([approverId])
+  @@map("approvals")
+}
+
+model EntryLog {
+  id               String   @id @default(uuid())
+  passId           String
+  guardId          String
+  gate             String
+  logType          LogType
+  isManualOverride Boolean  @default(false)
+  overrideReason   String?
+  vehiclePlate     String?
+  entryAt          DateTime?
+  exitAt           DateTime?
+  dwellMinutes     Int?
+  createdAt        DateTime @default(now())
+
+  pass  Pass @relation(fields: [passId], references: [id])
+  guard User @relation(fields: [guardId], references: [id])
+
+  @@index([passId])
+  @@index([gate])
+  @@index([entryAt])
+  @@index([logType])
+  @@map("entry_logs")
+}
+
+model Vehicle {
+  id                String      @id @default(uuid())
+  ownerId           String
+  numberPlate       String      @unique
+  vehicleType       VehicleType
+  make              String?
+  model             String?
+  color             String?
+  isCampusRegistered Boolean    @default(false)
+  createdAt         DateTime    @default(now())
+
+  owner       User          @relation(fields: [ownerId], references: [id])
+  vehiclePasses VehiclePass[]
+
+  @@index([numberPlate])
+  @@map("vehicles")
+}
+
+model VehiclePass {
+  id          String   @id @default(uuid())
+  passId      String   @unique
+  vehicleId   String
+  driverName  String
+  driverPhone String
+  createdAt   DateTime @default(now())
+
+  pass    Pass    @relation(fields: [passId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@map("vehicle_passes")
+}
+
+model HostelGuest {
+  id           String    @id @default(uuid())
+  passId       String    @unique
+  wardenId     String
+  hostelBlock  String
+  roomNumber   String
+  plannedNights Int
+  checkInAt    DateTime?
+  checkOutAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  pass   Pass @relation(fields: [passId], references: [id], onDelete: Cascade)
+  warden User @relation("WardenApprovals", fields: [wardenId], references: [id])
+
+  @@index([hostelBlock])
+  @@map("hostel_guests")
+}
+
+model Event {
+  id               String   @id @default(uuid())
+  createdById      String
+  name             String
+  description      String?
+  venue            String
+  capacity         Int
+  eventStart       DateTime
+  eventEnd         DateTime
+  entryWindowStart DateTime
+  entryWindowEnd   DateTime
+  isPublic         Boolean  @default(true)
+  isCancelled      Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  createdBy User   @relation(fields: [createdById], references: [id])
+  passes    Pass[]
+
+  @@index([eventStart])
+  @@map("events")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  passId    String?
+  title     String
+  body      String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pass Pass? @relation(fields: [passId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  action      String
+  resource    String
+  resourceId  String?
+  beforeState Json?
+  afterState  Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([resource, resourceId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
