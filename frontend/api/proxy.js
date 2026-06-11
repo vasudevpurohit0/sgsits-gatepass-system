@@ -108,11 +108,6 @@ export default async function handler(req, res) {
     res.status(response.statusCode).send(data);
   } catch (error) {
     console.error('Proxy error:', error);
-    res.status(502).json({ 
-      success: false, 
-      message: 'Backend unavailable', 
-      error: error.message, 
-      stack: error.stack 
-    });
+    res.status(502).json({ success: false, message: 'Backend unavailable' });
   }
 }
