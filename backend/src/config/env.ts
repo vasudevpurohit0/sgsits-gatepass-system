@@ -40,6 +40,8 @@ const envSchema = z.object({
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().default(''),
   SMTP_PASS: z.string().default(''),
+  EMAIL_USER: z.string().default(''),
+  EMAIL_PASS: z.string().default(''),
   SMTP_FROM_EMAIL: z.string().email().default('noreply@university.edu'),
   SMTP_FROM_NAME: z.string().default('University Gate Pass System'),
 });

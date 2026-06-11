@@ -122,12 +122,16 @@ export class PassService {
     if (isVIP) {
       const updatedPass = await this.generateAndAttachQR(pass.id, passNumber, validTo);
       
-      // Send approval notification and email
+      // Send approval notification and email in the background (non-blocking)
       const finalPass = (await this.passRepository.findById(updatedPass.id)) as any;
       if (finalPass) {
-        await this.emailService.sendPassApprovedEmail(finalPass.requester.email, finalPass);
+        this.emailService.sendPassApprovedEmail(finalPass.requester.email, finalPass).catch(err => {
+          logger.error('❌ Background email to requester failed:', err);
+        });
         if (finalPass.visitor.email) {
-          await this.emailService.sendPassApprovedEmail(finalPass.visitor.email, finalPass);
+          this.emailService.sendPassApprovedEmail(finalPass.visitor.email, finalPass).catch(err => {
+            logger.error('❌ Background email to visitor failed:', err);
+          });
         }
       }
       return updatedPass;
@@ -136,7 +140,9 @@ export class PassService {
     // 8. If Normal Approval required, trigger notification
     const fullPass = (await this.passRepository.findById(pass.id)) as any;
     if (fullPass) {
-      await this.emailService.sendPassCreatedEmail(fullPass.requester.email, fullPass);
+      this.emailService.sendPassCreatedEmail(fullPass.requester.email, fullPass).catch(err => {
+        logger.error('❌ Background email to requester failed:', err);
+      });
       
       // Notify Warden if hostel pass
       if (fullPass.passType === PassType.HOSTEL_GUEST && fullPass.hostelGuest) {
@@ -264,12 +270,16 @@ export class PassService {
       // 2. Generate and attach QR code assets
       const updatedPass = await this.generateAndAttachQR(passId, pass.passNumber, pass.validTo);
 
-      // 3. Dispatch Emails
+      // 3. Dispatch Emails in the background (non-blocking)
       const finalPass = (await this.passRepository.findById(passId)) as any;
       if (finalPass) {
-        await this.emailService.sendPassApprovedEmail(finalPass.requester.email, finalPass);
+        this.emailService.sendPassApprovedEmail(finalPass.requester.email, finalPass).catch(err => {
+          logger.error('❌ Background email to requester failed:', err);
+        });
         if (finalPass.visitor.email) {
-          await this.emailService.sendPassApprovedEmail(finalPass.visitor.email, finalPass);
+          this.emailService.sendPassApprovedEmail(finalPass.visitor.email, finalPass).catch(err => {
+            logger.error('❌ Background email to visitor failed:', err);
+          });
         }
 
         // Notify requester in-app
@@ -289,10 +299,12 @@ export class PassService {
         status: PassStatus.REJECTED,
       });
 
-      // 2. Dispatch rejection notifications
+      // 2. Dispatch rejection notifications in the background (non-blocking)
       const finalPass = (await this.passRepository.findById(passId)) as any;
       if (finalPass) {
-        await this.emailService.sendPassRejectedEmail(finalPass.requester.email, finalPass, remarks || '');
+        this.emailService.sendPassRejectedEmail(finalPass.requester.email, finalPass, remarks || '').catch(err => {
+          logger.error('❌ Background rejection email failed:', err);
+        });
         
         await this.notificationService.createNotification(
           finalPass.requesterId,
@@ -345,10 +357,12 @@ export class PassService {
       }
     }
 
-    // Notify requester and visitor
+    // Notify requester and visitor in the background (non-blocking)
     const finalPass = (await this.passRepository.findById(passId)) as any;
     if (finalPass) {
-      await this.emailService.sendPassRevokedEmail(finalPass.requester.email, finalPass, reason);
+      this.emailService.sendPassRevokedEmail(finalPass.requester.email, finalPass, reason).catch(err => {
+        logger.error('❌ Background revocation email failed:', err);
+      });
       
       await this.notificationService.createNotification(
         finalPass.requesterId,

@@ -52,6 +52,24 @@ export class StorageService {
   }
 
   /**
+   * Fetch a file from MinIO as a Buffer
+   */
+  async getFileBuffer(objectName: string): Promise<Buffer> {
+    try {
+      const stream = await minioClient.getObject(this.bucket, objectName);
+      return new Promise<Buffer>((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+        stream.on('error', (err) => reject(err));
+        stream.on('end', () => resolve(Buffer.concat(chunks)));
+      });
+    } catch (error: any) {
+      logger.error(`❌ MinIO getObject failed for "${objectName}":`, error);
+      throw new ApiError(500, `Storage fetch failed: ${error.message}`);
+    }
+  }
+
+  /**
    * Delete an object from MinIO
    */
   async deleteFile(objectName: string): Promise<void> {
