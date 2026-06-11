@@ -1,3 +1,7 @@
+import https from 'https';
+import http from 'http';
+import { URL } from 'url';
+
 const BACKEND_URL = 'https://sgsits-gatepass-system-production.up.railway.app';
 
 export const config = {
@@ -6,12 +10,32 @@ export const config = {
   },
 };
 
-function readBody(req) {
+function readStream(stream) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on('data', (chunk) => chunks.push(chunk));
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-    req.on('error', reject);
+    stream.on('data', (chunk) => chunks.push(chunk));
+    stream.on('end', () => resolve(Buffer.concat(chunks)));
+    stream.on('error', reject);
+  });
+}
+
+function makeRequest(urlStr, options, body) {
+  return new Promise((resolve, reject) => {
+    const parsedUrl = new URL(urlStr);
+    const client = parsedUrl.protocol === 'https:' ? https : http;
+    
+    const req = client.request(urlStr, options, (res) => {
+      resolve(res);
+    });
+    
+    req.on('error', (err) => {
+      reject(err);
+    });
+    
+    if (body !== undefined) {
+      req.write(body);
+    }
+    req.end();
   });
 }
 
@@ -50,13 +74,9 @@ export default async function handler(req, res) {
     // Read raw body for non-GET requests
     let body = undefined;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
-      if (req.body) {
-        body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-      } else {
-        const buffer = await readBody(req);
-        if (buffer.length > 0) {
-          body = buffer.toString('utf8');
-        }
+      const buffer = await readStream(req);
+      if (buffer.length > 0) {
+        body = buffer.toString('utf8');
       }
 
       if (body) {
@@ -64,18 +84,18 @@ export default async function handler(req, res) {
       }
     }
 
-    console.log(`[Proxy] Forwarding ${req.method} to ${targetUrl} with content-length: ${headers['content-length'] || 0}`);
-
-    const response = await fetch(targetUrl, {
+    const options = {
       method: req.method,
       headers,
-      body,
-    });
+    };
+
+    console.log(`[Proxy] Forwarding ${req.method} to ${targetUrl} via https`);
+    const response = await makeRequest(targetUrl, options, body);
 
     // Forward all response headers except connection-level ones
     const skipHeaders = new Set(['transfer-encoding', 'connection', 'keep-alive']);
-    for (const [key, value] of response.headers.entries()) {
-      if (!skipHeaders.has(key.toLowerCase())) {
+    for (const [key, value] of Object.entries(response.headers)) {
+      if (!skipHeaders.has(key.toLowerCase()) && value !== undefined) {
         if (key.toLowerCase() === 'set-cookie') {
           res.appendHeader(key, value);
         } else {
@@ -84,8 +104,8 @@ export default async function handler(req, res) {
       }
     }
 
-    const data = Buffer.from(await response.arrayBuffer());
-    res.status(response.status).send(data);
+    const data = await readStream(response);
+    res.status(response.statusCode).send(data);
   } catch (error) {
     console.error('Proxy error:', error);
     res.status(502).json({ 
