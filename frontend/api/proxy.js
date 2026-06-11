@@ -76,11 +76,11 @@ export default async function handler(req, res) {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       const buffer = await readStream(req);
       if (buffer.length > 0) {
-        body = buffer.toString('utf8');
+        body = buffer;
       }
 
       if (body) {
-        headers['content-length'] = String(Buffer.byteLength(body));
+        headers['content-length'] = String(body.length);
       }
     }
 
