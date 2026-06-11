@@ -859,6 +859,10 @@ body {
   .services-grid {
     grid-template-columns: 1fr;
   }
+  .grid-terminal-layout,
+  .pass-detail-main-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 850px) {
@@ -1232,6 +1236,57 @@ body {
 }
 
 /* ==========================================
+   DESKTOP GRID & COLUMN HELPERS
+   ========================================== */
+.grid-2-col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.grid-3-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.grid-terminal-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 2rem;
+}
+
+.guidelines-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.pass-detail-main-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 2rem;
+}
+
+.pass-info-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.visitor-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.special-module-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+/* ==========================================
    MOBILE & RESPONSIVE DASHBOARD LAYOUT
    ========================================== */
 
@@ -1286,7 +1341,10 @@ body {
   .pass-detail-main-grid,
   .pass-info-meta-grid,
   .visitor-profile-grid,
-  .special-module-grid {
+  .special-module-grid,
+  .grid-terminal-layout,
+  .grid-2-col,
+  .grid-3-col {
     grid-template-columns: 1fr !important;
     gap: 1.5rem !important;
   }
@@ -1296,5 +1354,68 @@ body {
   .print-pass-qr-card {
     width: 100% !important;
     margin-bottom: 1.5rem !important;
+  }
+
+  /* Reduce card padding on mobile to maximize content area */
+  .dashboard-main-content section,
+  .dashboard-main-content div[style*="padding: 2rem"],
+  .dashboard-main-content div[style*="padding:2rem"] {
+    padding: 1.25rem !important;
+  }
+
+  /* Stack hero buttons on mobile */
+  .hero-buttons {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 0.75rem !important;
+  }
+  .hero-buttons .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* Extra Mobile Optimizations for Filters, Forms, and Headers */
+@media (max-width: 600px) {
+  /* Stack list page filters on mobile */
+  .pass-list-container form,
+  .visitor-list-container form,
+  .audit-logs-container div[style*="display"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  
+  .pass-list-container form > div,
+  .visitor-list-container form > div,
+  .audit-logs-container div[style*="display"] > div {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+  
+  .pass-list-container form button,
+  .visitor-list-container form button,
+  .audit-logs-container div[style*="display"] button {
+    width: 100% !important;
+    justify-content: center !important;
+    margin-top: 0.5rem !important;
+  }
+  
+  /* Stack Gate Terminal forms on mobile */
+  .grid-terminal-layout form {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+  }
+  .grid-terminal-layout form button {
+    width: 100% !important;
+    justify-content: center !important;
+    margin-top: 0.5rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hide connection text status to fit smaller screens */
+  .dashboard-header-actions span:not(.dot) {
+    display: none !important;
   }
 }

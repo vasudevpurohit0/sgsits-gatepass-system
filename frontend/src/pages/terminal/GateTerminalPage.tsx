@@ -101,7 +101,7 @@ export const GateTerminalPage: React.FC = () => {
   const gateOptions = ['Main Gate', 'Hostel Gate', 'Academic Block Gate', 'Research Park Gate'];
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2rem', alignItems: 'start' }}>
+    <div className="grid-terminal-layout" style={{ gap: '2rem', alignItems: 'start' }}>
       
       {/* Scanner & Verification View */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -207,7 +207,7 @@ export const GateTerminalPage: React.FC = () => {
                 </div>
               )}
 
-              <div style={{ flexGrow: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid-2-col" style={{ flexGrow: 1, gap: '1rem' }}>
                 <div>
                   <span style={{ display: 'block', fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase' }}>Visitor Name</span>
                   <span style={{ fontWeight: 600, fontSize: '1.125rem' }}>{result.pass?.visitor?.name}</span>

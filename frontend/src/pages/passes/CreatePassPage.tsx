@@ -201,7 +201,7 @@ export const CreatePassPage: React.FC = () => {
         <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '2rem' }}>
           <h3 style={{ margin: '0 0 1.5rem 0' }}>1. Pass Configuration</h3>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div className="form-group">
               <label>Pass Type</label>
               <select value={passType} onChange={(e) => setPassType(e.target.value)} className="form-select">
@@ -227,7 +227,7 @@ export const CreatePassPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div className="form-group">
               <label>Valid From</label>
               <input type="datetime-local" value={validFrom} onChange={(e) => setValidFrom(e.target.value)} required />
@@ -254,7 +254,7 @@ export const CreatePassPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div className="form-group">
               <label>Pass Created by</label>
               <input type="text" value={createdByName} onChange={(e) => setCreatedByName(e.target.value)} placeholder="Full name of pass creator" required />
@@ -300,7 +300,7 @@ export const CreatePassPage: React.FC = () => {
         <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '2rem' }}>
           <h3 style={{ margin: '0 0 1.5rem 0' }}>2. Visitor Information</h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div className="form-group">
               <label>Full Name</label>
               <input type="text" value={visitorName} onChange={(e) => setVisitorName(e.target.value)} placeholder="Visitor name" required />
@@ -311,7 +311,7 @@ export const CreatePassPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div className="form-group">
               <label>Email Address (Optional)</label>
               <input type="email" value={visitorEmail} onChange={(e) => setVisitorEmail(e.target.value)} placeholder="visitor@email.com" />
@@ -326,14 +326,14 @@ export const CreatePassPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div className="form-group">
               <label>Coming From (Organization / City / Place)</label>
               <input type="text" value={comingFrom} onChange={(e) => setComingFrom(e.target.value)} placeholder="E.g. IIT Delhi, Mumbai, Google" required />
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div className="form-group">
               <label>ID Document Type</label>
               <select value={visitorIdType} onChange={(e) => setVisitorIdType(e.target.value)} className="form-select">
@@ -375,7 +375,7 @@ export const CreatePassPage: React.FC = () => {
           <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '2rem' }}>
             <h3 style={{ margin: '0 0 1.5rem 0', color: '#3b82f6' }}>3. Vehicle Specifications</h3>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
               <div className="form-group">
                 <label>Number Plate</label>
                 <input type="text" value={numberPlate} onChange={(e) => setNumberPlate(e.target.value)} placeholder="E.g., KA-01-MX-1234" required />
@@ -392,7 +392,7 @@ export const CreatePassPage: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="grid-3-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
               <div className="form-group">
                 <label>Make</label>
                 <input type="text" value={make} onChange={(e) => setMake(e.target.value)} placeholder="E.g., Honda" />
@@ -407,7 +407,7 @@ export const CreatePassPage: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div className="grid-2-col" style={{ gap: '1.5rem' }}>
               <div className="form-group">
                 <label>Driver Name (If not visitor)</label>
                 <input type="text" value={driverName} onChange={(e) => setDriverName(e.target.value)} placeholder="Driver's name" />
@@ -425,7 +425,7 @@ export const CreatePassPage: React.FC = () => {
           <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '2rem' }}>
             <h3 style={{ margin: '0 0 1.5rem 0', color: '#c084fc' }}>3. Hostel Verification</h3>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="grid-3-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
               <div className="form-group">
                 <label>Hostel Block</label>
                 <input type="text" value={hostelBlock} onChange={(e) => setHostelBlock(e.target.value)} placeholder="E.g., Block B" required />
