@@ -16,10 +16,17 @@ app.use(
   cors({
     origin: (origin, callback) => {
       const allowedOrigins = [env.CORS_ORIGIN];
+      const normalizedOrigins = allowedOrigins.map(o => o.replace(/\/$/, ''));
       if (env.NODE_ENV === 'development') {
-        allowedOrigins.push('http://localhost:5173');
+        normalizedOrigins.push('http://localhost:5173');
       }
-      if (!origin || allowedOrigins.includes(origin)) {
+      
+      const isAllowed = 
+        !origin || 
+        normalizedOrigins.includes(origin.replace(/\/$/, '')) ||
+        origin.endsWith('.vercel.app');
+        
+      if (isAllowed) {
         callback(null, true);
       } else {
         callback(new Error('CORS policy violation'));

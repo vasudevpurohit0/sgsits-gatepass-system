@@ -15,7 +15,21 @@ const server = http.createServer(app);
 // Initialize Socket.io server
 const io = new Server(server, {
   cors: {
-    origin: [env.CORS_ORIGIN, 'http://localhost:5173'],
+    origin: (origin, callback) => {
+      const allowedOrigins = [env.CORS_ORIGIN, 'http://localhost:5173'];
+      const normalizedOrigins = allowedOrigins.map(o => o ? o.replace(/\/$/, '') : '');
+      
+      const isAllowed = 
+        !origin || 
+        normalizedOrigins.includes(origin.replace(/\/$/, '')) ||
+        origin.endsWith('.vercel.app');
+        
+      if (isAllowed) {
+        callback(null, origin);
+      } else {
+        callback(new Error('CORS policy violation'));
+      }
+    },
     methods: ['GET', 'POST'],
     credentials: true,
   },
