@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "start:prod": "npx prisma migrate deploy && node dist/prisma/seed.js && node dist/server.js",
+    "start:prod": "npx prisma migrate deploy && (node dist/prisma/seed.js || echo 'Database seeding failed or already done') && node dist/server.js",
     "dev": "nodemon src/server.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
