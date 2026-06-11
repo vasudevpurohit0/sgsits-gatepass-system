@@ -1,6 +1,8 @@
 # Multi-stage Dockerfile for Node.js Backend
 # Stage 1: Build stage
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
+
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
 
@@ -15,7 +17,9 @@ RUN npx prisma generate
 RUN npm run build
 
 # Stage 2: Production stage
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
+
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
 
@@ -28,4 +32,4 @@ COPY --from=builder /usr/src/app/prisma ./prisma
 
 EXPOSE 5000
 
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:prod"]
