@@ -50,13 +50,21 @@ export default async function handler(req, res) {
     // Read raw body for non-GET requests
     let body = undefined;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
-      body = await readBody(req);
-      if (body.length > 0) {
-        headers['content-length'] = String(body.length);
+      if (req.body) {
+        body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
       } else {
-        body = undefined;
+        const buffer = await readBody(req);
+        if (buffer.length > 0) {
+          body = buffer.toString('utf8');
+        }
+      }
+
+      if (body) {
+        headers['content-length'] = String(Buffer.byteLength(body));
       }
     }
+
+    console.log(`[Proxy] Forwarding ${req.method} to ${targetUrl} with content-length: ${headers['content-length'] || 0}`);
 
     const response = await fetch(targetUrl, {
       method: req.method,
