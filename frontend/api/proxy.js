@@ -26,10 +26,18 @@ export default async function handler(req, res) {
     return res.status(204).end();
   }
 
-  // Build target URL: /api/v1/auth/login -> https://backend.../api/v1/auth/login
-  const targetUrl = `${BACKEND_URL}${req.url}`;
+  // Retrieve matched path (e.g. "auth/login")
+  const pathParam = req.query.path || '';
+  
+  // Reconstruct other query parameters if they exist
+  const query = { ...req.query };
+  delete query.path;
+  const queryString = new URLSearchParams(query).toString();
+  
+  // Build final target URL
+  const targetUrl = `${BACKEND_URL}/api/v1/${pathParam}${queryString ? '?' + queryString : ''}`;
 
-  // Copy headers but strip Origin, Host, and connection-specific headers
+  // Copy headers but strip Host, Origin, and connection-specific headers
   const headers = {};
   for (const [key, value] of Object.entries(req.headers)) {
     const lower = key.toLowerCase();
@@ -39,7 +47,7 @@ export default async function handler(req, res) {
   headers['host'] = 'sgsits-gatepass-system-production.up.railway.app';
 
   try {
-    // Read raw body for POST/PUT/PATCH/DELETE
+    // Read raw body for non-GET requests
     let body = undefined;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       body = await readBody(req);
@@ -56,11 +64,10 @@ export default async function handler(req, res) {
       body,
     });
 
-    // Forward all response headers (except connection-level ones)
+    // Forward all response headers except connection-level ones
     const skipHeaders = new Set(['transfer-encoding', 'connection', 'keep-alive']);
     for (const [key, value] of response.headers.entries()) {
       if (!skipHeaders.has(key.toLowerCase())) {
-        // Handle multiple Set-Cookie headers
         if (key.toLowerCase() === 'set-cookie') {
           res.appendHeader(key, value);
         } else {
