@@ -1,6 +1,7 @@
 import { Notification, NotificationType } from '@prisma/client';
 import { prisma } from '../config/database';
 import { logger } from '../utils/logger';
+import { socketService } from './socket.service';
 
 export class NotificationService {
   /**
@@ -24,15 +25,11 @@ export class NotificationService {
         },
       });
 
-      // Dynamically require server to obtain socket io instance and prevent circular dependencies
+      // Emit real-time WebSocket alert using socketService to avoid circular dependency crash
       try {
-        const { io } = require('../server');
-        if (io) {
-          io.to(`user:${userId}`).emit('notification', notification);
-          logger.debug(`📡 Dispatched WS notification to room user:${userId}`);
-        }
+        socketService.emitToUser(userId, 'notification', notification);
       } catch (wsError) {
-        logger.warn('⚠️ WebSocket dispatch skipped (server initializing or not exported yet)');
+        logger.warn('⚠️ WebSocket dispatch skipped:', wsError);
       }
 
       return notification;

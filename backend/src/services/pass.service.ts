@@ -122,17 +122,19 @@ export class PassService {
     if (isVIP) {
       const updatedPass = await this.generateAndAttachQR(pass.id, passNumber, validTo);
       
-      // Send approval notification and email in the background (non-blocking)
+      // Send approval notification and email in the background (non-blocking, deferred)
       const finalPass = (await this.passRepository.findById(updatedPass.id)) as any;
       if (finalPass) {
-        this.emailService.sendPassApprovedEmail(finalPass.requester.email, finalPass).catch(err => {
-          logger.error('❌ Background email to requester failed:', err);
-        });
-        if (finalPass.visitor.email) {
-          this.emailService.sendPassApprovedEmail(finalPass.visitor.email, finalPass).catch(err => {
-            logger.error('❌ Background email to visitor failed:', err);
+        setImmediate(() => {
+          this.emailService.sendPassApprovedEmail(finalPass.requester.email, finalPass).catch(err => {
+            logger.error('❌ Background email to requester failed:', err);
           });
-        }
+          if (finalPass.visitor.email) {
+            this.emailService.sendPassApprovedEmail(finalPass.visitor.email, finalPass).catch(err => {
+              logger.error('❌ Background email to visitor failed:', err);
+            });
+          }
+        });
       }
       return updatedPass;
     }
@@ -140,8 +142,10 @@ export class PassService {
     // 8. If Normal Approval required, trigger notification
     const fullPass = (await this.passRepository.findById(pass.id)) as any;
     if (fullPass) {
-      this.emailService.sendPassCreatedEmail(fullPass.requester.email, fullPass).catch(err => {
-        logger.error('❌ Background email to requester failed:', err);
+      setImmediate(() => {
+        this.emailService.sendPassCreatedEmail(fullPass.requester.email, fullPass).catch(err => {
+          logger.error('❌ Background email to requester failed:', err);
+        });
       });
       
       // Notify Warden if hostel pass
@@ -273,14 +277,16 @@ export class PassService {
       // 3. Dispatch Emails in the background (non-blocking)
       const finalPass = (await this.passRepository.findById(passId)) as any;
       if (finalPass) {
-        this.emailService.sendPassApprovedEmail(finalPass.requester.email, finalPass).catch(err => {
-          logger.error('❌ Background email to requester failed:', err);
-        });
-        if (finalPass.visitor.email) {
-          this.emailService.sendPassApprovedEmail(finalPass.visitor.email, finalPass).catch(err => {
-            logger.error('❌ Background email to visitor failed:', err);
+        setImmediate(() => {
+          this.emailService.sendPassApprovedEmail(finalPass.requester.email, finalPass).catch(err => {
+            logger.error('❌ Background email to requester failed:', err);
           });
-        }
+          if (finalPass.visitor.email) {
+            this.emailService.sendPassApprovedEmail(finalPass.visitor.email, finalPass).catch(err => {
+              logger.error('❌ Background email to visitor failed:', err);
+            });
+          }
+        });
 
         // Notify requester in-app
         await this.notificationService.createNotification(
@@ -299,11 +305,13 @@ export class PassService {
         status: PassStatus.REJECTED,
       });
 
-      // 2. Dispatch rejection notifications in the background (non-blocking)
+      // 2. Dispatch rejection notifications in the background (non-blocking, deferred)
       const finalPass = (await this.passRepository.findById(passId)) as any;
       if (finalPass) {
-        this.emailService.sendPassRejectedEmail(finalPass.requester.email, finalPass, remarks || '').catch(err => {
-          logger.error('❌ Background rejection email failed:', err);
+        setImmediate(() => {
+          this.emailService.sendPassRejectedEmail(finalPass.requester.email, finalPass, remarks || '').catch(err => {
+            logger.error('❌ Background rejection email failed:', err);
+          });
         });
         
         await this.notificationService.createNotification(
@@ -357,11 +365,13 @@ export class PassService {
       }
     }
 
-    // Notify requester and visitor in the background (non-blocking)
+    // Notify requester and visitor in the background (non-blocking, deferred)
     const finalPass = (await this.passRepository.findById(passId)) as any;
     if (finalPass) {
-      this.emailService.sendPassRevokedEmail(finalPass.requester.email, finalPass, reason).catch(err => {
-        logger.error('❌ Background revocation email failed:', err);
+      setImmediate(() => {
+        this.emailService.sendPassRevokedEmail(finalPass.requester.email, finalPass, reason).catch(err => {
+          logger.error('❌ Background revocation email failed:', err);
+        });
       });
       
       await this.notificationService.createNotification(
