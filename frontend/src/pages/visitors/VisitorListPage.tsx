@@ -22,8 +22,8 @@ export const VisitorListPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [blacklistError, setBlacklistError] = useState<string | null>(null);
 
-  const fetchVisitors = async () => {
-    setLoading(true);
+  const fetchVisitors = async (showFullLoading = true) => {
+    if (showFullLoading) setLoading(true);
     try {
       const res = await listVisitors({
         page,
@@ -38,18 +38,18 @@ export const VisitorListPage: React.FC = () => {
     } catch (err) {
       console.error('Failed to load visitors directory:', err);
     } finally {
-      setLoading(false);
+      if (showFullLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchVisitors();
+    fetchVisitors(true);
   }, [page, category]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    fetchVisitors();
+    fetchVisitors(true);
   };
 
   const handleBlacklistToggle = async (visitor: Visitor) => {
@@ -59,7 +59,7 @@ export const VisitorListPage: React.FC = () => {
         try {
           const res = await blacklistVisitor(visitor.id, { isBlacklisted: false });
           if (res && res.success) {
-            fetchVisitors();
+            fetchVisitors(false);
           }
         } catch (err: any) {
           alert(err.response?.data?.message || 'Failed to update blacklist status');
@@ -89,7 +89,7 @@ export const VisitorListPage: React.FC = () => {
       });
       if (res && res.success) {
         setSelectedVisitor(null);
-        fetchVisitors();
+        fetchVisitors(false);
       }
     } catch (err: any) {
       const errorMsg = err.response?.data?.errors?.[0]?.message || err.response?.data?.message || 'Failed to blacklist visitor';

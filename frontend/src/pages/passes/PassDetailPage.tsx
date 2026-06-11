@@ -26,9 +26,9 @@ export const PassDetailPage: React.FC = () => {
   const [revoking, setRevoking] = useState(false);
   const [revokeError, setRevokeError] = useState<string | null>(null);
 
-  const fetchPassDetails = async () => {
+  const fetchPassDetails = async (showFullLoading = true) => {
     if (!id) return;
-    setLoading(true);
+    if (showFullLoading) setLoading(true);
     setError(null);
     try {
       const res = await getPass(id);
@@ -40,12 +40,12 @@ export const PassDetailPage: React.FC = () => {
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch pass details');
     } finally {
-      setLoading(false);
+      if (showFullLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPassDetails();
+    fetchPassDetails(true);
   }, [id]);
 
   const handleReview = async (approved: boolean) => {
@@ -56,7 +56,7 @@ export const PassDetailPage: React.FC = () => {
       if (res && res.success) {
         setReviewModalOpen(false);
         setRemarks('');
-        fetchPassDetails();
+        fetchPassDetails(false);
       }
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to review pass');
@@ -78,7 +78,7 @@ export const PassDetailPage: React.FC = () => {
       if (res && res.success) {
         setRevokeModalOpen(false);
         setRevokeReason('');
-        fetchPassDetails();
+        fetchPassDetails(false);
       }
     } catch (err: any) {
       const errorMsg = err.response?.data?.errors?.[0]?.message || err.response?.data?.message || 'Failed to revoke pass';

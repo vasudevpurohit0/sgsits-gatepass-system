@@ -31,8 +31,8 @@ export const PassListPage: React.FC = () => {
   const [revokeReason, setRevokeReason] = useState('');
   const [revokeError, setRevokeError] = useState<string | null>(null);
 
-  const fetchPasses = async () => {
-    setLoading(true);
+  const fetchPasses = async (showFullLoading = true) => {
+    if (showFullLoading) setLoading(true);
     try {
       const response = await listPasses({
         page,
@@ -48,18 +48,18 @@ export const PassListPage: React.FC = () => {
     } catch (err) {
       console.error('Failed to fetch passes:', err);
     } finally {
-      setLoading(false);
+      if (showFullLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPasses();
+    fetchPasses(true);
   }, [page, status, passType]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    fetchPasses();
+    fetchPasses(true);
   };
 
   const handleReview = async (approved: boolean) => {
@@ -70,7 +70,7 @@ export const PassListPage: React.FC = () => {
       if (res && res.success) {
         setSelectedPass(null);
         setRemarks('');
-        fetchPasses();
+        fetchPasses(false);
       }
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to review pass');
@@ -91,7 +91,7 @@ export const PassListPage: React.FC = () => {
       if (res && res.success) {
         setRevokingPass(null);
         setRevokeReason('');
-        fetchPasses();
+        fetchPasses(false);
       }
     } catch (err: any) {
       const errorMsg = err.response?.data?.errors?.[0]?.message || err.response?.data?.message || 'Failed to revoke pass';
