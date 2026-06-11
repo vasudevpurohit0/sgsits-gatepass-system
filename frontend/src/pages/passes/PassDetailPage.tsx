@@ -179,7 +179,7 @@ export const PassDetailPage: React.FC = () => {
             color: '#002766',
             letterSpacing: '1px'
           }}>
-            SGSITS Entry/Exit Pass
+            {pass.passType === 'VEHICLE' ? 'SGSITS Vehicle Entry Pass' : pass.passType === 'HOSTEL_GUEST' ? 'SGSITS Hostel Guest Pass' : 'SGSITS Entry/Exit Pass'}
           </h1>
         </div>
 
@@ -198,7 +198,7 @@ export const PassDetailPage: React.FC = () => {
             marginTop: '8px',
             letterSpacing: '1px'
           }}>
-            OFFICIAL Visitor : {pass.passNumber}
+            {pass.passType === 'VEHICLE' ? 'OFFICIAL Vehicle Pass' : 'OFFICIAL Visitor'} : {pass.passNumber}
           </div>
         </div>
 
@@ -265,6 +265,61 @@ export const PassDetailPage: React.FC = () => {
                 </td>
               </tr>
             )}
+
+            {/* Conditional Vehicle Pass Details in Printable Ticket */}
+            {pass.passType === 'VEHICLE' && pass.vehiclePass && (
+              <>
+                <tr>
+                  <td colSpan={2} style={{ borderBottom: '1px solid #000000', padding: '10px 15px', backgroundColor: '#fffbe6' }}>
+                    <span style={{ color: '#002766', fontWeight: 'bold' }}>Vehicle Plate Number : </span>
+                    <span style={{ color: '#e01b22', fontWeight: 'bold', fontFamily: 'monospace' }}>{pass.vehiclePass.vehicle?.numberPlate}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{ borderBottom: '1px solid #000000', borderRight: '1px solid #000000', padding: '10px 15px', width: '50%' }}>
+                    <span style={{ color: '#002766', fontWeight: 'bold' }}>Vehicle Make / Model : </span>
+                    <span style={{ color: '#52c41a', fontWeight: 'bold' }}>{pass.vehiclePass.vehicle?.make} {pass.vehiclePass.vehicle?.model}</span>
+                  </td>
+                  <td style={{ borderBottom: '1px solid #000000', padding: '10px 15px', width: '50%' }}>
+                    <span style={{ color: '#002766', fontWeight: 'bold' }}>Vehicle Type : </span>
+                    <span style={{ color: '#52c41a', fontWeight: 'bold' }}>{pass.vehiclePass.vehicle?.vehicleType}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{ borderBottom: '1px solid #000000', borderRight: '1px solid #000000', padding: '10px 15px', width: '50%' }}>
+                    <span style={{ color: '#002766', fontWeight: 'bold' }}>Authorized Driver : </span>
+                    <span style={{ color: '#52c41a', fontWeight: 'bold' }}>{pass.vehiclePass.driverName}</span>
+                  </td>
+                  <td style={{ borderBottom: '1px solid #000000', padding: '10px 15px', width: '50%' }}>
+                    <span style={{ color: '#002766', fontWeight: 'bold' }}>Driver Phone : </span>
+                    <span style={{ color: '#52c41a', fontWeight: 'bold' }}>{pass.vehiclePass.driverPhone}</span>
+                  </td>
+                </tr>
+              </>
+            )}
+
+            {/* Conditional Hostel Guest Details in Printable Ticket */}
+            {pass.passType === 'HOSTEL_GUEST' && pass.hostelGuest && (
+              <>
+                <tr>
+                  <td colSpan={2} style={{ borderBottom: '1px solid #000000', padding: '10px 15px', backgroundColor: '#fffbe6' }}>
+                    <span style={{ color: '#002766', fontWeight: 'bold' }}>Hostel Block : </span>
+                    <span style={{ color: '#e01b22', fontWeight: 'bold' }}>{pass.hostelGuest.hostelBlock}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{ borderBottom: '1px solid #000000', borderRight: '1px solid #000000', padding: '10px 15px', width: '50%' }}>
+                    <span style={{ color: '#002766', fontWeight: 'bold' }}>Room Number : </span>
+                    <span style={{ color: '#52c41a', fontWeight: 'bold' }}>{pass.hostelGuest.roomNumber}</span>
+                  </td>
+                  <td style={{ borderBottom: '1px solid #000000', padding: '10px 15px', width: '50%' }}>
+                    <span style={{ color: '#002766', fontWeight: 'bold' }}>Planned Nights : </span>
+                    <span style={{ color: '#52c41a', fontWeight: 'bold' }}>{pass.hostelGuest.plannedNights} night(s)</span>
+                  </td>
+                </tr>
+              </>
+            )}
+
             <tr>
               <td colSpan={2} style={{ padding: '10px 15px' }}>
                 <span style={{ color: '#002766', fontWeight: 'bold' }}>Visit Period : </span>
