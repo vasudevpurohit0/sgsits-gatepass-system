@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { loginFormSchema } from '../../schemas/auth.schema';
 import { useAuth } from '../../hooks/useAuth';
 import { AlertCircle } from 'lucide-react';
@@ -9,7 +9,15 @@ import { AlertCircle } from 'lucide-react';
 export const LoginPage: React.FC = () => {
   const { loginUser, isLoading, error, mfaRequiredEmail } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [localError, setLocalError] = useState<string | null>(null);
+
+  // Redirect back to the originally requested route (e.g. terminal verification with token) or default to dashboard
+  const from = location.state?.from
+    ? (typeof location.state.from === 'string'
+        ? location.state.from
+        : `${location.state.from.pathname || '/dashboard'}${location.state.from.search || ''}`)
+    : '/dashboard';
 
   // Captcha state
   const [captchaCode, setCaptchaCode] = useState('');
@@ -110,7 +118,7 @@ export const LoginPage: React.FC = () => {
     });
 
     if (result.success) {
-      navigate('/dashboard');
+      navigate(from, { replace: true });
     } else if (!result.mfaRequired) {
       setLocalError(result.error || 'Login failed');
       if (!mfaRequiredEmail) {

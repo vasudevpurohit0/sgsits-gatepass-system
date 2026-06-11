@@ -2,8 +2,11 @@
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "/api/proxy.js?path=:path*"
+      "destination": "https://sgsits-gatepass-system-production.up.railway.app/api/v1/:path*"
     },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
