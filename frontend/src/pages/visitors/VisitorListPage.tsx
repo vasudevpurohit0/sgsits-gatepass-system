@@ -164,7 +164,7 @@ export const VisitorListPage: React.FC = () => {
       </div>
 
       {/* Directory Table */}
-      <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+      <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', overflowX: 'auto' }}>
         {loading ? (
           <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
             <Loader2 size={32} className="animate-spin" style={{ color: 'var(--primary)' }} />

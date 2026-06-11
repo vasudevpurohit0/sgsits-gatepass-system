@@ -132,7 +132,7 @@ export const DashboardPage: React.FC = () => {
             Follow these roles-based steps to ensure smooth entry, exit, and approval workflows across the campus gates.
           </p>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
+          <div className="guidelines-grid" style={{ gap: '1.5rem' }}>
             <div className="service-node" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <h5 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontWeight: 'bold' }}>
                 <Users size={18} /> For Students & Faculty

@@ -361,7 +361,7 @@ export const PassDetailPage: React.FC = () => {
         Please show this at SGSITS entry/exit gate
       </div>
 
-      <div className="pass-detail-container no-print" style={{ display: 'grid', gridTemplateColumns: '1.3fr 0.7fr', gap: '2rem', alignItems: 'start' }}>
+      <div className="pass-detail-container no-print pass-detail-main-grid" style={{ gap: '2rem', alignItems: 'start' }}>
       
       {/* Left Column - Details */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -407,7 +407,7 @@ export const PassDetailPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+          <div className="pass-info-meta-grid" style={{ gap: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
             <div>
               <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Valid From</span>
               <span style={{ fontWeight: 600 }}>{new Date(pass.validFrom).toLocaleString()}</span>
@@ -480,7 +480,7 @@ export const PassDetailPage: React.FC = () => {
               </div>
             )}
 
-            <div style={{ flexGrow: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="visitor-profile-grid" style={{ flexGrow: 1, gap: '1rem' }}>
               <div>
                 <span style={{ display: 'block', fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase' }}>Full Name</span>
                 <span style={{ fontWeight: 600 }}>{pass.visitor?.name}</span>
@@ -521,7 +521,7 @@ export const PassDetailPage: React.FC = () => {
             <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-h)' }}>
               <Building size={20} style={{ color: 'var(--primary)' }} /> Hostel Guest Verification
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+            <div className="special-module-grid" style={{ gap: '1.5rem' }}>
               <div>
                 <span style={{ display: 'block', fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase' }}>Hostel Block</span>
                 <span style={{ fontWeight: 600 }}>{pass.hostelGuest.hostelBlock}</span>
@@ -543,7 +543,7 @@ export const PassDetailPage: React.FC = () => {
             <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-h)' }}>
               <Car size={20} style={{ color: 'var(--primary)' }} /> Vehicle Pass Details
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="special-module-grid" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
               <div>
                 <span style={{ display: 'block', fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase' }}>Plate Number</span>
                 <span style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{pass.vehiclePass.vehicle?.numberPlate}</span>
@@ -557,7 +557,7 @@ export const PassDetailPage: React.FC = () => {
                 <span style={{ fontWeight: 600 }}>{pass.vehiclePass.vehicle?.vehicleType}</span>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+            <div className="pass-info-meta-grid" style={{ gap: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
               <div>
                 <span style={{ display: 'block', fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase' }}>Authorized Driver</span>
                 <span>{pass.vehiclePass.driverName}</span>

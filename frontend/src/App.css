@@ -1197,16 +1197,104 @@ body {
   color: #10b981 !important;
 }
 
-/* Hide brand pane on smaller viewports */
+/* Hide brand pane on smaller viewports and style logo relatively */
 @media (max-width: 850px) {
   .auth-card-wrapper {
-    flex-direction: column;
+    flex-direction: column !important;
+    align-items: center !important;
+    overflow-y: auto !important;
+    height: 100vh !important;
   }
   .auth-brand-pane {
     display: none !important;
   }
   .auth-form-pane {
     width: 100% !important;
-    height: 100vh;
+    height: auto !important;
+    min-height: auto !important;
+    padding: 1.5rem !important;
+  }
+  .auth-logo-circle {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    margin: 2.5rem auto 1.5rem auto !important;
+    width: 130px !important;
+    height: 130px !important;
+    padding: 10px !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+  }
+  .auth-form-container {
+    padding-left: 0 !important;
+    margin: 0 auto !important;
+  }
+}
+
+/* ==========================================
+   MOBILE & RESPONSIVE DASHBOARD LAYOUT
+   ========================================== */
+
+/* Toggle mobile menu button trigger (hidden on desktop) */
+.mobile-menu-trigger {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Show menu trigger on mobile */
+  .mobile-menu-trigger {
+    display: block !important;
+  }
+
+  /* Make sidebar float on mobile */
+  .sidebar {
+    position: fixed !important;
+    left: -260px !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    z-index: 1000 !important;
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.15) !important;
+    transition: left 0.3s ease-in-out !important;
+  }
+
+  /* Open class to slide the sidebar in */
+  .sidebar.open {
+    left: 0 !important;
+  }
+
+  /* Adjust header padding and content margins for mobile */
+  .dashboard-header {
+    padding: 0 1rem !important;
+    height: 60px !important;
+  }
+
+  .dashboard-main-content {
+    padding: 1rem !important;
+  }
+
+  /* Stack stats widgets */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Make flex/grid cards stack vertically on small devices */
+  .create-pass-sections-grid,
+  .pass-detail-grid,
+  .guidelines-grid,
+  .pass-detail-main-grid,
+  .pass-info-meta-grid,
+  .visitor-profile-grid,
+  .special-module-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  .visitor-profile-card,
+  .quick-actions-card,
+  .print-pass-qr-card {
+    width: 100% !important;
+    margin-bottom: 1.5rem !important;
   }
 }

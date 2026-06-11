@@ -54,6 +54,23 @@ export const DashboardLayout: React.FC = () => {
 
   return (
     <div className="dashboard-layout" style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-base)', color: 'var(--text-main)' }}>
+      {/* Mobile Menu Backdrop */}
+      {mobileMenuOpen && (
+        <div 
+          className="sidebar-backdrop" 
+          onClick={() => setMobileMenuOpen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            zIndex: 999,
+          }}
+        />
+      )}
+
       {/* Sidebar navigation */}
       <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{
         width: '260px',
@@ -196,7 +213,6 @@ export const DashboardLayout: React.FC = () => {
             className="mobile-menu-trigger"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             style={{
-              display: 'none',
               background: 'none',
               border: 'none',
               fontSize: '1.5rem',
