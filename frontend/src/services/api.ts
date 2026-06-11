@@ -57,11 +57,10 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Check if the request is to auth endpoints to avoid refresh loops
-    const isAuthRoute = originalRequest.url && (
-      originalRequest.url.includes('/auth/login') ||
-      originalRequest.url.includes('/auth/refresh') ||
-      originalRequest.url.includes('/auth/register')
-    );
+    const url = originalRequest.url || '';
+    const isAuthRoute = url.includes('/login') || url.includes('/refresh') || url.includes('/register');
+
+    console.warn(`[API Interceptor] Error 401 on ${url}. isAuthRoute=${isAuthRoute}, _retry=${!!originalRequest._retry}`);
 
     // Check if error is 401, not retried yet, and not an auth endpoint
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
