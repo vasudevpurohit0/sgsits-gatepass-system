@@ -172,7 +172,14 @@ export const CreatePassPage: React.FC = () => {
         navigate(`/passes/${res.data.id}`);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create gate pass request');
+      const serverMessage = err.response?.data?.message;
+      const validationErrors = err.response?.data?.errors;
+      if (validationErrors && Array.isArray(validationErrors)) {
+        const details = validationErrors.map((e: any) => `${e.field}: ${e.message}`).join(', ');
+        setError(`Validation Failed: ${details}`);
+      } else {
+        setError(serverMessage || 'Failed to create gate pass request');
+      }
     } finally {
       setLoading(false);
     }

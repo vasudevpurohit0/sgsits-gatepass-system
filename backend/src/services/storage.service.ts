@@ -17,17 +17,15 @@ export class StorageService {
     objectName: string, 
     buffer: Buffer, 
     mimeType: string, 
-    isSecure = false
+    _isSecure = false
   ): Promise<string> {
     try {
       const metaData: Record<string, string> = {
         'Content-Type': mimeType,
       };
 
-      if (isSecure && env.NODE_ENV === 'production') {
-        // Enforce Server-Side Encryption (SSE-S3) in production where KMS is configured
-        metaData['x-amz-server-side-encryption'] = 'AES256';
-      }
+      // SSE-S3 encryption is disabled because MinIO containers (such as the one deployed on Railway)
+      // do not have KMS configured. Attempting to set 'x-amz-server-side-encryption' returns a 500 S3Error.
 
       await minioClient.putObject(this.bucket, objectName, buffer, buffer.length, metaData);
       logger.info(`📁 Uploaded file "${objectName}" to bucket "${this.bucket}"`);
