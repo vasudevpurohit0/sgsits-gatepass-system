@@ -99,74 +99,74 @@ export const CreatePassPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    if (!validFrom || !validTo) {
-      setError('Please specify pass validity period');
-      setLoading(false);
-      return;
-    }
-
-    if (allowedGates.length === 0) {
-      setError('Please select at least one allowed gate');
-      setLoading(false);
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('passType', passType);
-    formData.append('validFrom', validFrom);
-    formData.append('validTo', validTo);
-    formData.append('purpose', purpose);
-    formData.append('notes', notes);
-    formData.append('createdByName', createdByName);
-    formData.append('creatorDept', creatorDept);
-    formData.append('comingFrom', comingFrom);
-    formData.append('isMultiEntry', String(isMultiEntry));
-    allowedGates.forEach(gate => formData.append('allowedGates', gate));
-
-    // Visitor Details
-    let formattedPhone = visitorPhone.trim();
-    if (!formattedPhone.startsWith('+')) {
-      formattedPhone = `+91${formattedPhone}`;
-    }
-
-    formData.append('visitor[name]', visitorName);
-    formData.append('visitor[phone]', formattedPhone);
-    formData.append('visitor[category]', visitorCategory);
-    formData.append('visitor[idType]', visitorIdType);
-    formData.append('visitor[idNumber]', visitorIdNumber);
-    if (visitorEmail) {
-      formData.append('visitor[email]', visitorEmail);
-    }
-
-    // Attach File
-    if (idPhoto) {
-      formData.append('idPhoto', idPhoto);
-    }
-
-    // Vehicle Details
-    if (passType === 'VEHICLE') {
-      let formattedDriverPhone = (driverPhone || visitorPhone).trim();
-      if (!formattedDriverPhone.startsWith('+')) {
-        formattedDriverPhone = `+91${formattedDriverPhone}`;
-      }
-      formData.append('vehicleDetails[numberPlate]', numberPlate);
-      formData.append('vehicleDetails[vehicleType]', vehicleType);
-      formData.append('vehicleDetails[make]', make);
-      formData.append('vehicleDetails[model]', model);
-      formData.append('vehicleDetails[color]', color);
-      formData.append('vehicleDetails[driverName]', driverName || visitorName);
-      formData.append('vehicleDetails[driverPhone]', formattedDriverPhone);
-    }
-
-    // Hostel Details
-    if (passType === 'HOSTEL_GUEST') {
-      formData.append('hostelDetails[hostelBlock]', hostelBlock);
-      formData.append('hostelDetails[roomNumber]', roomNumber);
-      formData.append('hostelDetails[plannedNights]', plannedNights);
-      formData.append('hostelDetails[wardenId]', wardenId);
-    }
-
     try {
+      if (!validFrom || !validTo) {
+        setError('Please specify pass validity period');
+        setLoading(false);
+        return;
+      }
+
+      if (allowedGates.length === 0) {
+        setError('Please select at least one allowed gate');
+        setLoading(false);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('passType', passType);
+      formData.append('validFrom', validFrom);
+      formData.append('validTo', validTo);
+      formData.append('purpose', purpose);
+      formData.append('notes', notes);
+      formData.append('createdByName', createdByName);
+      formData.append('creatorDept', creatorDept);
+      formData.append('comingFrom', comingFrom);
+      formData.append('isMultiEntry', String(isMultiEntry));
+      allowedGates.forEach(gate => formData.append('allowedGates', gate));
+
+      // Visitor Details
+      let formattedPhone = (visitorPhone || '').trim();
+      if (!formattedPhone.startsWith('+')) {
+        formattedPhone = `+91${formattedPhone}`;
+      }
+
+      formData.append('visitor[name]', visitorName);
+      formData.append('visitor[phone]', formattedPhone);
+      formData.append('visitor[category]', visitorCategory);
+      formData.append('visitor[idType]', visitorIdType);
+      formData.append('visitor[idNumber]', visitorIdNumber);
+      if (visitorEmail) {
+        formData.append('visitor[email]', visitorEmail);
+      }
+
+      // Attach File
+      if (idPhoto) {
+        formData.append('idPhoto', idPhoto);
+      }
+
+      // Vehicle Details
+      if (passType === 'VEHICLE') {
+        let formattedDriverPhone = (driverPhone || visitorPhone || '').trim();
+        if (!formattedDriverPhone.startsWith('+')) {
+          formattedDriverPhone = `+91${formattedDriverPhone}`;
+        }
+        formData.append('vehicleDetails[numberPlate]', numberPlate);
+        formData.append('vehicleDetails[vehicleType]', vehicleType);
+        formData.append('vehicleDetails[make]', make);
+        formData.append('vehicleDetails[model]', model);
+        formData.append('vehicleDetails[color]', color);
+        formData.append('vehicleDetails[driverName]', driverName || visitorName);
+        formData.append('vehicleDetails[driverPhone]', formattedDriverPhone);
+      }
+
+      // Hostel Details
+      if (passType === 'HOSTEL_GUEST') {
+        formData.append('hostelDetails[hostelBlock]', hostelBlock);
+        formData.append('hostelDetails[roomNumber]', roomNumber);
+        formData.append('hostelDetails[plannedNights]', plannedNights);
+        formData.append('hostelDetails[wardenId]', wardenId);
+      }
+
       const res = await createPass(formData);
       if (res && res.success) {
         navigate(`/passes/${res.data.id}`);
@@ -178,7 +178,7 @@ export const CreatePassPage: React.FC = () => {
         const details = validationErrors.map((e: any) => `${e.field}: ${e.message}`).join(', ');
         setError(`Validation Failed: ${details}`);
       } else {
-        setError(serverMessage || 'Failed to create gate pass request');
+        setError(serverMessage || err.message || 'Failed to create gate pass request');
       }
     } finally {
       setLoading(false);
