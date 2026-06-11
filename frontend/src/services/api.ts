@@ -1,8 +1,12 @@
 import axios from 'axios';
 
-// In production on Vercel, use relative path so requests go through the Vercel rewrite proxy.
-// For local development, set VITE_API_URL to point to your local backend.
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+// Always use the relative proxy path. On Vercel, vercel.json rewrites /api/v1/*
+// to the Railway backend server-side, bypassing CORS entirely.
+// For local development, create a frontend/.env file with:
+//   VITE_API_URL=http://localhost:5000/api/v1
+const API_BASE_URL = import.meta.env.DEV
+  ? (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1')
+  : '/api/v1';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
