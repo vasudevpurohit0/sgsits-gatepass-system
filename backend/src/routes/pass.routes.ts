@@ -4,7 +4,8 @@ import {
   getPass, 
   listPasses, 
   reviewPass, 
-  revokePass 
+  revokePass,
+  resendPassEmail
 } from '../controllers/pass.controller';
 import { authenticateJWT } from '../middleware/auth.middleware';
 import { requirePermission } from '../middleware/rbac.middleware';
@@ -63,6 +64,14 @@ router.post(
   validateRequest(revokePassSchema), 
   auditLogger('Revoke active gate pass'),
   revokePass
+);
+
+// Resend approved pass email (restricted to admins/approvers)
+router.post(
+  '/:id/resend-email',
+  requirePermission('approve_pass'),
+  auditLogger('Resend visitor pass approved email'),
+  resendPassEmail
 );
 
 export default router;

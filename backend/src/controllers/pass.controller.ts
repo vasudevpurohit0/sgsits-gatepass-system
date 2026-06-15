@@ -103,9 +103,16 @@ export const reviewPass = asyncHandler(async (req: Request, res: Response): Prom
   const frontendUrl = getFrontendUrl(req);
 
   const pass = await passService.approveOrRejectPass(id, req.user.id, approved, remarks, frontendUrl);
+  const emailWarning = (pass as any).emailWarning;
 
   res.status(200).json(
-    new ApiResponse(200, pass, `Pass successfully ${approved ? 'approved' : 'rejected'}`)
+    new ApiResponse(
+      200, 
+      pass, 
+      emailWarning 
+        ? `Pass successfully approved, but warning: ${emailWarning}` 
+        : `Pass successfully ${approved ? 'approved' : 'rejected'}`
+    )
   );
 });
 
@@ -127,4 +134,26 @@ export const revokePass = asyncHandler(async (req: Request, res: Response): Prom
   );
 });
 
-export default { createPass, getPass, listPasses, reviewPass, revokePass };
+/**
+ * Resend approved visitor pass email manually
+ */
+export const resendPassEmail = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  if (!req.user) {
+    throw new ApiError(401, 'Unauthorized');
+  }
+
+  const { id } = req.params;
+  const result = await passService.resendApprovedPassEmail(id);
+
+  if (!result.success) {
+    res.status(200).json(
+      new ApiResponse(200, null, `Email delivery failed: ${result.error}`, { success: false, error: result.error })
+    );
+  } else {
+    res.status(200).json(
+      new ApiResponse(200, null, 'Email delivered successfully', { success: true })
+    );
+  }
+});
+
+export default { createPass, getPass, listPasses, reviewPass, revokePass, resendPassEmail };

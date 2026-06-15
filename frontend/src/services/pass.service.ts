@@ -29,10 +29,16 @@ export const revokePass = async (id: string, data: { reason: string }) => {
   return response.data;
 };
 
+export const resendPassEmail = async (id: string) => {
+  const response = await api.post(`/pass/${id}/resend-email`);
+  return response.data;
+};
+
 export default {
   createPass,
   getPass,
   listPasses,
   reviewPass,
   revokePass,
+  resendPassEmail,
 };

@@ -125,14 +125,40 @@ export class PassService {
       // Send approval notification and email in the background (non-blocking, deferred)
       const finalPass = (await this.passRepository.findById(updatedPass.id)) as any;
       if (finalPass) {
-        setImmediate(() => {
+        setImmediate(async () => {
           this.emailService.sendPassApprovedEmail(finalPass.requester.email, finalPass).catch(err => {
             logger.error('❌ Background email to requester failed:', err);
           });
           if (finalPass.visitor.email) {
-            this.emailService.sendPassApprovedEmail(finalPass.visitor.email, finalPass).catch(err => {
+            try {
+              const res = await this.emailService.sendPassApprovedEmail(finalPass.visitor.email, finalPass);
+              await prisma.emailDeliveryLog.create({
+                data: {
+                  passId: finalPass.id,
+                  passNumber: finalPass.passNumber,
+                  visitorName: finalPass.visitor.name,
+                  visitorEmail: finalPass.visitor.email,
+                  approvalTimestamp: finalPass.approvedAt || new Date(),
+                  status: res.success ? "SUCCESS" : "FAILED",
+                  sentTimestamp: res.success ? new Date() : null,
+                  errorMessage: res.error || null,
+                }
+              });
+            } catch (err: any) {
               logger.error('❌ Background email to visitor failed:', err);
-            });
+              await prisma.emailDeliveryLog.create({
+                data: {
+                  passId: finalPass.id,
+                  passNumber: finalPass.passNumber,
+                  visitorName: finalPass.visitor.name,
+                  visitorEmail: finalPass.visitor.email,
+                  approvalTimestamp: finalPass.approvedAt || new Date(),
+                  status: "FAILED",
+                  sentTimestamp: null,
+                  errorMessage: err.message || String(err),
+                }
+              });
+            }
           }
         });
       }
@@ -274,19 +300,55 @@ export class PassService {
       // 2. Generate and attach QR code assets
       const updatedPass = await this.generateAndAttachQR(passId, pass.passNumber, pass.validTo, frontendUrl);
 
-      // 3. Dispatch Emails in the background (non-blocking)
+      // 3. Dispatch Emails
       const finalPass = (await this.passRepository.findById(passId)) as any;
+      let emailWarning: string | undefined = undefined;
+
       if (finalPass) {
+        // Send email to requester in the background (non-blocking)
         setImmediate(() => {
           this.emailService.sendPassApprovedEmail(finalPass.requester.email, finalPass).catch(err => {
             logger.error('❌ Background email to requester failed:', err);
           });
-          if (finalPass.visitor.email) {
-            this.emailService.sendPassApprovedEmail(finalPass.visitor.email, finalPass).catch(err => {
-              logger.error('❌ Background email to visitor failed:', err);
-            });
-          }
         });
+
+        // Send email to visitor synchronously so we can return warning to admin
+        if (finalPass.visitor.email) {
+          try {
+            const emailResult = await this.emailService.sendPassApprovedEmail(finalPass.visitor.email, finalPass);
+            await prisma.emailDeliveryLog.create({
+              data: {
+                passId: finalPass.id,
+                passNumber: finalPass.passNumber,
+                visitorName: finalPass.visitor.name,
+                visitorEmail: finalPass.visitor.email,
+                approvalTimestamp: finalPass.approvedAt || new Date(),
+                status: emailResult.success ? "SUCCESS" : "FAILED",
+                sentTimestamp: emailResult.success ? new Date() : null,
+                errorMessage: emailResult.error || null,
+              }
+            });
+
+            if (!emailResult.success) {
+              emailWarning = emailResult.error;
+            }
+          } catch (err: any) {
+            logger.error('❌ Email to visitor failed:', err);
+            await prisma.emailDeliveryLog.create({
+              data: {
+                passId: finalPass.id,
+                passNumber: finalPass.passNumber,
+                visitorName: finalPass.visitor.name,
+                visitorEmail: finalPass.visitor.email,
+                approvalTimestamp: finalPass.approvedAt || new Date(),
+                status: "FAILED",
+                sentTimestamp: null,
+                errorMessage: err.message || String(err),
+              }
+            });
+            emailWarning = err.message || String(err);
+          }
+        }
 
         // Notify requester in-app
         await this.notificationService.createNotification(
@@ -298,7 +360,11 @@ export class PassService {
         );
       }
 
-      return updatedPass;
+      const returnPass = { ...updatedPass } as any;
+      if (emailWarning) {
+        returnPass.emailWarning = emailWarning;
+      }
+      return returnPass;
     } else {
       // 1. Update status to REJECTED
       const updatedPass = await this.passRepository.update(passId, {
@@ -384,6 +450,61 @@ export class PassService {
     }
 
     return updatedPass;
+  }
+
+  /**
+   * Resend approved visitor pass email manually
+   */
+  async resendApprovedPassEmail(passId: string): Promise<{ success: boolean; error?: string }> {
+    const pass = (await this.passRepository.findById(passId)) as any;
+    if (!pass) {
+      throw new ApiError(404, 'Pass not found');
+    }
+
+    if (pass.status !== PassStatus.APPROVED && pass.status !== PassStatus.ACTIVE) {
+      throw new ApiError(400, `Pass is in status "${pass.status}" and cannot be emailed. Only APPROVED or ACTIVE passes can be resent.`);
+    }
+
+    if (!pass.visitor.email) {
+      throw new ApiError(400, 'Visitor has no email address configured.');
+    }
+
+    try {
+      const emailResult = await this.emailService.sendPassApprovedEmail(pass.visitor.email, pass);
+      
+      // Save log in db
+      await prisma.emailDeliveryLog.create({
+        data: {
+          passId: pass.id,
+          passNumber: pass.passNumber,
+          visitorName: pass.visitor.name,
+          visitorEmail: pass.visitor.email,
+          approvalTimestamp: pass.approvedAt || new Date(),
+          status: emailResult.success ? "SUCCESS" : "FAILED",
+          sentTimestamp: emailResult.success ? new Date() : null,
+          errorMessage: emailResult.error || null,
+        }
+      });
+
+      return emailResult;
+    } catch (err: any) {
+      logger.error('❌ Failed to resend pass email:', err);
+      
+      await prisma.emailDeliveryLog.create({
+        data: {
+          passId: pass.id,
+          passNumber: pass.passNumber,
+          visitorName: pass.visitor.name,
+          visitorEmail: pass.visitor.email,
+          approvalTimestamp: pass.approvedAt || new Date(),
+          status: "FAILED",
+          sentTimestamp: null,
+          errorMessage: err.message || String(err),
+        }
+      });
+
+      return { success: false, error: err.message || String(err) };
+    }
   }
 }
 

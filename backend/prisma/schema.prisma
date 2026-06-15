@@ -207,6 +207,7 @@ model Pass {
   vehiclePass VehiclePass?
   hostelGuest HostelGuest?
   notifications Notification[]
+  emailDeliveryLogs EmailDeliveryLog[]
 
   @@index([requesterId])
   @@index([visitorId])
@@ -368,4 +369,24 @@ model AuditLog {
   @@index([resource, resourceId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model EmailDeliveryLog {
+  id                String    @id @default(uuid())
+  passId            String
+  passNumber        String
+  visitorName       String
+  visitorEmail      String
+  approvalTimestamp DateTime  @default(now())
+  status            String    // "SUCCESS" | "FAILED"
+  sentTimestamp     DateTime?
+  errorMessage      String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  pass              Pass      @relation(fields: [passId], references: [id], onDelete: Cascade)
+
+  @@index([passId])
+  @@index([status])
+  @@map("email_delivery_logs")
 }

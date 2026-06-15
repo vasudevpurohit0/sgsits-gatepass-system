@@ -36,6 +36,9 @@ export class PassRepository {
         hostelGuest: {
           include: { warden: true },
         },
+        emailDeliveryLogs: {
+          orderBy: { createdAt: 'desc' },
+        },
       },
     });
   }

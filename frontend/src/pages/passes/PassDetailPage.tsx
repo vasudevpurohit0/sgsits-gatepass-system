@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getPass, reviewPass, revokePass } from '../../services/pass.service';
+import { getPass, reviewPass, revokePass, resendPassEmail } from '../../services/pass.service';
 import { useAuth } from '../../hooks/useAuth';
 import { usePermissions } from '../../hooks/usePermissions';
 import type { Pass, PassStatus } from '../../types/pass.types';
-import { Loader2, AlertCircle, RefreshCw, Lock, User, Camera, Building, Car, History, Copy, Printer } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw, Lock, User, Camera, Building, Car, History, Copy, Printer, Mail } from 'lucide-react';
 
 export const PassDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +25,27 @@ export const PassDetailPage: React.FC = () => {
   const [revokeReason, setRevokeReason] = useState('');
   const [revoking, setRevoking] = useState(false);
   const [revokeError, setRevokeError] = useState<string | null>(null);
+
+  const [resendingEmail, setResendingEmail] = useState(false);
+
+  const handleResendEmail = async () => {
+    if (!pass) return;
+    setResendingEmail(true);
+    try {
+      const res = await resendPassEmail(pass.id);
+      // We check if res.success is false or if status is not success
+      if (res && res.success) {
+        alert('Visitor pass email successfully delivered!');
+        fetchPassDetails(false);
+      } else {
+        alert(res.message || 'Failed to resend pass email');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to resend pass email');
+    } finally {
+      setResendingEmail(false);
+    }
+  };
 
   const fetchPassDetails = async (showFullLoading = true) => {
     if (!id) return;
@@ -362,6 +383,29 @@ export const PassDetailPage: React.FC = () => {
       </div>
 
       <div className="pass-detail-container no-print pass-detail-main-grid" style={{ gap: '2rem', alignItems: 'start' }}>
+        
+        {/* Warning alert banner for failed email delivery */}
+        {pass.emailDeliveryLogs && pass.emailDeliveryLogs.length > 0 && pass.emailDeliveryLogs[0].status === 'FAILED' && (
+          <div style={{
+            gridColumn: 'span 2',
+            backgroundColor: 'rgba(239, 68, 68, 0.08)',
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            padding: '1rem 1.5rem',
+            borderRadius: '12px',
+            color: '#f87171',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            fontSize: '0.875rem',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}>
+            <AlertCircle size={20} style={{ color: '#ef4444', flexShrink: 0 }} />
+            <span>
+              <strong>Warning:</strong> Visitor email delivery failed: <em>{pass.emailDeliveryLogs[0].errorMessage || 'Unknown SMTP error'}</em>. You can attempt to resend the pass email.
+            </span>
+          </div>
+        )}
       
       {/* Left Column - Details */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -613,6 +657,50 @@ export const PassDetailPage: React.FC = () => {
             <p style={{ margin: 0, color: '#94a3b8', fontStyle: 'italic' }}>No logged entries/exits recorded for this pass yet.</p>
           )}
         </div>
+
+        {/* Email Delivery Audit Logs */}
+        <div className="email-delivery-log-card" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '2rem' }}>
+          <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-h)' }}>
+            <Mail size={20} style={{ color: 'var(--primary)' }} /> Visitor Pass Email Delivery Logs
+          </h3>
+          {pass.emailDeliveryLogs && pass.emailDeliveryLogs.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {pass.emailDeliveryLogs.map((log) => (
+                <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.85rem 1rem', border: '1px solid var(--border-color)', borderRadius: '8px', backgroundColor: 'var(--bg-base)' }}>
+                  <div>
+                    <span style={{
+                      display: 'inline-block',
+                      padding: '0.15rem 0.5rem',
+                      borderRadius: '4px',
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      backgroundColor: log.status === 'SUCCESS' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                      color: log.status === 'SUCCESS' ? '#10b981' : '#ef4444',
+                      marginRight: '0.75rem',
+                    }}>
+                      {log.status}
+                    </span>
+                    <span style={{ fontWeight: 600 }}>Recipient: {log.visitorEmail}</span>
+                  </div>
+                  <div style={{ textAlign: 'right', fontSize: '0.8125rem', color: '#94a3b8' }}>
+                    {log.sentTimestamp ? (
+                      <div>Delivered: {new Date(log.sentTimestamp).toLocaleString()}</div>
+                    ) : (
+                      <div>Attempted: {new Date(log.createdAt).toLocaleString()}</div>
+                    )}
+                    {log.errorMessage && (
+                      <div style={{ color: '#f87171', marginTop: '4px', fontSize: '0.75rem', maxWidth: '300px', wordBreak: 'break-all', textAlign: 'right' }}>
+                        Error: {log.errorMessage}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ margin: 0, color: '#94a3b8', fontStyle: 'italic' }}>No email delivery attempts recorded for this pass yet.</p>
+          )}
+        </div>
       </div>
 
       {/* Right Column - QR display / Quick Actions */}
@@ -683,6 +771,18 @@ export const PassDetailPage: React.FC = () => {
                 style={{ backgroundColor: '#3b82f6', borderColor: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
               >
                 <Printer size={16} /> Print / Save PDF
+              </button>
+            )}
+
+            {/* Resend Email Button */}
+            {(pass.status === 'APPROVED' || pass.status === 'ACTIVE') && pass.visitor?.email && can('approve_pass') && (
+              <button 
+                onClick={handleResendEmail}
+                disabled={resendingEmail}
+                className="btn btn-secondary w-full"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', borderColor: 'var(--primary)', color: 'var(--primary)' }}
+              >
+                <Mail size={16} /> {resendingEmail ? 'Sending Email...' : 'Resend Pass Email'}
               </button>
             )}
 

@@ -127,4 +127,19 @@ export interface Pass {
   entryLogs?: EntryLog[];
   vehiclePass?: VehiclePass | null;
   hostelGuest?: HostelGuest | null;
+  emailDeliveryLogs?: EmailDeliveryLog[];
+}
+
+export interface EmailDeliveryLog {
+  id: string;
+  passId: string;
+  passNumber: string;
+  visitorName: string;
+  visitorEmail: string;
+  approvalTimestamp: string;
+  status: string;
+  sentTimestamp?: string | null;
+  errorMessage?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
