@@ -1455,3 +1455,10 @@ body {
   }
 }
 
+/* Hide library default viewfinder shading canvas without breaking its dimensions in the DOM flow */
+#qr-camera-reader canvas {
+  opacity: 0 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+}
+

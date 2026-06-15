@@ -155,41 +155,45 @@ export const GateTerminalPage: React.FC = () => {
       const html5QrCode = new Html5Qrcode(scannerContainerId);
       html5QrCodeRef.current = html5QrCode;
 
+      // Define optimized scan configuration (no custom aspect ratio constraints)
+      const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        disableFlip: false,
+      };
+
       // Try exact environment camera constraint first, fallback to environment
       try {
+        console.log("Starting scanner (exact environment)...");
         await html5QrCode.start(
           { facingMode: { exact: 'environment' } },
-          {
-            fps: 15,
-            aspectRatio: window.innerWidth / window.innerHeight,
-            disableFlip: false,
-          },
+          config,
           (decodedText) => {
+            console.log("QR DETECTED:", decodedText);
             handleCameraScanSuccess(decodedText);
           },
-          () => {
-            // QR code not found in this frame
+          (errorMessage) => {
+            // Verbose error logging in the scan error callback
+            console.log("Scan error (exact):", errorMessage);
           }
         );
+        console.log("Scanner started (exact environment)");
       } catch (exactErr) {
-        console.warn('Failed to start with exact environment, falling back to environment:', exactErr);
+        console.warn('Failed to start with exact environment, trying general environment fallback:', exactErr);
+        console.log("Starting scanner (fallback environment)...");
         await html5QrCode.start(
           { facingMode: 'environment' },
-          {
-            fps: 15,
-            aspectRatio: window.innerWidth / window.innerHeight,
-            disableFlip: false,
-          },
+          config,
           (decodedText) => {
+            console.log("QR DETECTED:", decodedText);
             handleCameraScanSuccess(decodedText);
           },
-          () => {
-            // QR code not found in this frame
+          (errorMessage) => {
+            console.log("Scan error (fallback):", errorMessage);
           }
         );
+        console.log("Scanner started (fallback environment)");
       }
-
-
     } catch (err: any) {
       console.error('Camera scanner error:', err);
       let message = 'Unable to access camera. ';
