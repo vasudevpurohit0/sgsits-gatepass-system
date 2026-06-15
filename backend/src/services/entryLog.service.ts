@@ -41,12 +41,19 @@ export class EntryLogService {
 
     // 3. Perform Business Rule Checks
     const now = new Date();
+    const validFrom = new Date(pass.validFrom);
+    const validTo = new Date(pass.validTo);
 
     // Debug logging for date and status verification
-    console.log("NOW:", now);
-    console.log("VALID FROM:", pass.validFrom);
-    console.log("VALID TO:", pass.validTo);
-    console.log("STATUS:", pass.status);
+    console.log("========== PASS VALIDATION ==========");
+    console.log("Current Server Time:", now.toISOString());
+    console.log("Pass ID:", pass.id);
+    console.log("Pass Status:", pass.status);
+    console.log("Valid From Raw:", pass.validFrom);
+    console.log("Valid To Raw:", pass.validTo);
+    console.log("Valid From ISO:", validFrom.toISOString());
+    console.log("Valid To ISO:", validTo.toISOString());
+    console.log("====================================");
 
     const formatIST = (d: Date) => d.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
 
@@ -59,14 +66,20 @@ export class EntryLogService {
     }
 
     // Check validity window
-    if (now < pass.validFrom) {
-      throw new ApiError(403, `Access Denied: Pass is not active yet. Valid from: ${formatIST(pass.validFrom)}`);
+    if (now < validFrom) {
+      throw new ApiError(
+        403,
+        `Access Denied: Pass is not active yet. Valid From: ${formatIST(validFrom)} | Server Time: ${formatIST(now)}`
+      );
     }
 
-    if (now > pass.validTo) {
+    if (now > validTo) {
       // Auto-update pass status to EXPIRED
       await this.passRepository.update(passId, { status: PassStatus.EXPIRED });
-      throw new ApiError(403, `Access Denied: Pass expired at ${formatIST(pass.validTo)}`);
+      throw new ApiError(
+        403,
+        `Access Denied: Pass expired at ${formatIST(validTo)} | Server Time: ${formatIST(now)}`
+      );
     }
 
     // Check allowed gates
