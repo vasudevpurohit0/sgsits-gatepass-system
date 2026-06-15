@@ -28,7 +28,7 @@ export class PassService {
   /**
    * Request a new gate pass. Implements VIP auto-approvals and conditional modules.
    */
-  async createPass(requesterId: string, data: any, idPhotoBuffer?: Buffer, idPhotoMimeType?: string): Promise<Pass> {
+  async createPass(requesterId: string, data: any, idPhotoBuffer?: Buffer, idPhotoMimeType?: string, frontendUrl?: string): Promise<Pass> {
     // 1. Resolve visitor details
     const visitor = await this.visitorService.findOrCreateVisitor(
       data.visitor,
@@ -120,7 +120,7 @@ export class PassService {
 
     // 7. If Auto-approved (VIP), generate QR details
     if (isVIP) {
-      const updatedPass = await this.generateAndAttachQR(pass.id, passNumber, validTo);
+      const updatedPass = await this.generateAndAttachQR(pass.id, passNumber, validTo, frontendUrl);
       
       // Send approval notification and email in the background (non-blocking, deferred)
       const finalPass = (await this.passRepository.findById(updatedPass.id)) as any;
@@ -166,7 +166,7 @@ export class PassService {
   /**
    * Helper to generate encrypted QR code payload and upload image to MinIO
    */
-  private async generateAndAttachQR(passId: string, passNumber: string, validTo: Date): Promise<Pass> {
+  private async generateAndAttachQR(passId: string, passNumber: string, validTo: Date, frontendUrlParam?: string): Promise<Pass> {
     // 1. Encrypt token payload (AES-256-CBC + HMAC-SHA256)
     const qrToken = encryptQRToken({
       passId,
@@ -175,7 +175,7 @@ export class PassService {
     });
 
     // 2. Generate QR Image Buffer containing the verification URL
-    const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+    const frontendUrl = frontendUrlParam || process.env.CORS_ORIGIN || 'http://localhost:5173';
     const qrCodeUrl = `${frontendUrl}/terminal?token=${encodeURIComponent(qrToken)}`;
 
     const qrImageBuffer = await QRCode.toBuffer(qrCodeUrl, {
@@ -243,7 +243,7 @@ export class PassService {
   /**
    * Process approval or rejection of a pass request
    */
-  async approveOrRejectPass(passId: string, approverId: string, approved: boolean, remarks?: string | null): Promise<Pass> {
+  async approveOrRejectPass(passId: string, approverId: string, approved: boolean, remarks?: string | null, frontendUrl?: string): Promise<Pass> {
     const pass = (await this.passRepository.findById(passId)) as any;
     if (!pass) {
       throw new ApiError(404, 'Pass not found');
@@ -272,7 +272,7 @@ export class PassService {
       });
 
       // 2. Generate and attach QR code assets
-      const updatedPass = await this.generateAndAttachQR(passId, pass.passNumber, pass.validTo);
+      const updatedPass = await this.generateAndAttachQR(passId, pass.passNumber, pass.validTo, frontendUrl);
 
       // 3. Dispatch Emails in the background (non-blocking)
       const finalPass = (await this.passRepository.findById(passId)) as any;

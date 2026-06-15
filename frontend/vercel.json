@@ -1,13 +1,12 @@
 {
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/v1/(.*)",
-      "dest": "https://sgsits-gatepass-system-production.up.railway.app/api/v1/$1"
+      "source": "/api/v1/(.*)",
+      "destination": "https://sgsits-gatepass-system-production.up.railway.app/api/v1/$1"
     },
-    { "handle": "filesystem" },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

@@ -7,6 +7,31 @@ import ApiError from '../utils/ApiError';
 const passService = new PassService();
 
 /**
+ * Get the dynamic frontend origin resiliently from request headers or fallback
+ */
+const getFrontendUrl = (req: Request): string => {
+  let origin = req.headers.origin;
+  if (Array.isArray(origin)) origin = origin[0];
+  
+  if (!origin && req.headers.referer) {
+    try {
+      origin = new URL(req.headers.referer).origin;
+    } catch {
+      // ignore
+    }
+  }
+  if (!origin && req.headers['x-forwarded-host']) {
+    const proto = req.headers['x-forwarded-proto'] || 'https';
+    const host = req.headers['x-forwarded-host'];
+    origin = `${proto}://${host}`;
+  }
+  if (!origin) {
+    origin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+  }
+  return origin;
+};
+
+/**
  * Request a new gate pass (with optional visitor ID file attachment)
  */
 export const createPass = asyncHandler(async (req: Request, res: Response): Promise<void> => {
@@ -15,17 +40,20 @@ export const createPass = asyncHandler(async (req: Request, res: Response): Prom
   }
 
   const file = req.file; // From multer single file middleware
+  const frontendUrl = getFrontendUrl(req);
   const pass = await passService.createPass(
     req.user.id,
     req.body,
     file?.buffer,
-    file?.mimetype
+    file?.mimetype,
+    frontendUrl
   );
 
   res.status(201).json(
     new ApiResponse(201, pass, 'Gate pass request submitted successfully')
   );
 });
+
 
 /**
  * Fetch detailed pass information by ID, appending temporary secure media presigned URLs
@@ -72,8 +100,9 @@ export const reviewPass = asyncHandler(async (req: Request, res: Response): Prom
 
   const { id } = req.params;
   const { approved, remarks } = req.body;
+  const frontendUrl = getFrontendUrl(req);
 
-  const pass = await passService.approveOrRejectPass(id, req.user.id, approved, remarks);
+  const pass = await passService.approveOrRejectPass(id, req.user.id, approved, remarks, frontendUrl);
 
   res.status(200).json(
     new ApiResponse(200, pass, `Pass successfully ${approved ? 'approved' : 'rejected'}`)

@@ -1419,3 +1419,39 @@ body {
     display: none !important;
   }
 }
+
+/* ===== QR CAMERA VIEWFINDER COVER STYLE ===== */
+#qr-camera-reader {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: #000000 !important;
+}
+
+#qr-camera-reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+/* Viewfinder animations */
+@keyframes scan-anim {
+  0% { top: 5%; }
+  50% { top: 90%; }
+  100% { top: 5%; }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
