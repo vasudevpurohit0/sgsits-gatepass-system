@@ -4,6 +4,8 @@ import { logger } from '../utils/logger';
 import { StorageService } from './storage.service';
 import { PdfService } from './pdf.service';
 
+const formatIST = (d: Date | string) => new Date(d).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
+
 export class EmailService {
   private from: string;
   private storageService: StorageService;
@@ -63,7 +65,7 @@ export class EmailService {
           </tr>
           <tr>
             <td style="padding: 6px 0; color: #718096; font-weight: bold;">Validity:</td>
-            <td style="padding: 6px 0; color: #2d3748;">${new Date(passDetails.validFrom).toLocaleString()} to ${new Date(passDetails.validTo).toLocaleString()}</td>
+            <td style="padding: 6px 0; color: #2d3748;">${formatIST(passDetails.validFrom)} to ${formatIST(passDetails.validTo)}</td>
           </tr>
         </table>
         <p style="color: #718096; font-size: 13px; margin-top: 25px;">You will receive another email update once the pass is reviewed by the appropriate warden/authority.</p>
@@ -209,11 +211,11 @@ export class EmailService {
             
             <tr>
               <td style="padding: 6px 0; color: #64748b; font-weight: bold; border-top: 1px solid #f1f5f9;">Valid From:</td>
-              <td style="padding: 6px 0; color: #1e293b; border-top: 1px solid #f1f5f9;">${new Date(passDetails.validFrom).toLocaleString()}</td>
+              <td style="padding: 6px 0; color: #1e293b; border-top: 1px solid #f1f5f9;">${formatIST(passDetails.validFrom)}</td>
             </tr>
             <tr>
               <td style="padding: 6px 0; color: #64748b; font-weight: bold;">Valid To:</td>
-              <td style="padding: 6px 0; color: #1e293b;">${new Date(passDetails.validTo).toLocaleString()}</td>
+              <td style="padding: 6px 0; color: #1e293b;">${formatIST(passDetails.validTo)}</td>
             </tr>
             ${passDetails.allowedGates && passDetails.allowedGates.length > 0 ? `
             <tr>

@@ -42,6 +42,14 @@ export class EntryLogService {
     // 3. Perform Business Rule Checks
     const now = new Date();
 
+    // Debug logging for date and status verification
+    console.log("NOW:", now);
+    console.log("VALID FROM:", pass.validFrom);
+    console.log("VALID TO:", pass.validTo);
+    console.log("STATUS:", pass.status);
+
+    const formatIST = (d: Date) => d.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
+
     // Check pass status
     if (
       pass.status !== PassStatus.APPROVED &&
@@ -52,13 +60,13 @@ export class EntryLogService {
 
     // Check validity window
     if (now < pass.validFrom) {
-      throw new ApiError(403, `Access Denied: Pass is not active yet. Valid from: ${pass.validFrom.toLocaleString()}`);
+      throw new ApiError(403, `Access Denied: Pass is not active yet. Valid from: ${formatIST(pass.validFrom)}`);
     }
 
     if (now > pass.validTo) {
       // Auto-update pass status to EXPIRED
       await this.passRepository.update(passId, { status: PassStatus.EXPIRED });
-      throw new ApiError(403, `Access Denied: Pass expired at ${pass.validTo.toLocaleString()}`);
+      throw new ApiError(403, `Access Denied: Pass expired at ${formatIST(pass.validTo)}`);
     }
 
     // Check allowed gates

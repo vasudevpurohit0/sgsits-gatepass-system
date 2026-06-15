@@ -114,8 +114,8 @@ export const CreatePassPage: React.FC = () => {
 
       const formData = new FormData();
       formData.append('passType', passType);
-      formData.append('validFrom', validFrom);
-      formData.append('validTo', validTo);
+      formData.append('validFrom', new Date(validFrom).toISOString());
+      formData.append('validTo', new Date(validTo).toISOString());
       formData.append('purpose', purpose);
       formData.append('notes', notes);
       formData.append('createdByName', createdByName);

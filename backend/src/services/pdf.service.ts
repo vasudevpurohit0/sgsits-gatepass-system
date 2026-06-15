@@ -1,6 +1,8 @@
 import PDFDocument from 'pdfkit';
 import { logger } from '../utils/logger';
 
+const formatIST = (d: Date | string) => new Date(d).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
+
 export class PdfService {
   /**
    * Programmatically generate the official SGSITS Entry/Exit Pass PDF in memory
@@ -107,8 +109,8 @@ export class PdfService {
         if (pass.creatorDept) addDetailRow('Department', pass.creatorDept);
         if (pass.comingFrom) addDetailRow('Coming From', pass.comingFrom);
 
-        addDetailRow('Valid From', new Date(pass.validFrom).toLocaleString());
-        addDetailRow('Valid To', new Date(pass.validTo).toLocaleString());
+        addDetailRow('Valid From', formatIST(pass.validFrom));
+        addDetailRow('Valid To', formatIST(pass.validTo));
 
         if (pass.allowedGates && pass.allowedGates.length > 0) {
           addDetailRow('Allowed Gates', pass.allowedGates.join(', '));
