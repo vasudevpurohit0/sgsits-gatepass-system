@@ -73,6 +73,87 @@ app.get(`${env.API_PREFIX}/health`, async (_req, res) => {
   );
 });
 
+// SMTP Diagnostics endpoint
+app.get(`${env.API_PREFIX}/health/smtp-diagnostics`, async (_req, res) => {
+  const net = require('net');
+  const nodemailer = require('nodemailer');
+
+  const diagnostics: any = {
+    timestamp: new Date(),
+    env: {
+      SMTP_HOST: env.SMTP_HOST,
+      SMTP_PORT: env.SMTP_PORT,
+      SMTP_USER: env.SMTP_USER,
+      EMAIL_USER: env.EMAIL_USER,
+      SMTP_FROM_EMAIL: env.SMTP_FROM_EMAIL,
+      NODE_ENV: env.NODE_ENV,
+      has_SMTP_PASS: !!env.SMTP_PASS,
+      has_EMAIL_PASS: !!env.EMAIL_PASS,
+      length_SMTP_PASS: env.SMTP_PASS ? env.SMTP_PASS.length : 0,
+      length_EMAIL_PASS: env.EMAIL_PASS ? env.EMAIL_PASS.length : 0,
+    },
+    tcp: {},
+    verify: null,
+  };
+
+  const testPort = (host: string, port: number): Promise<string> => {
+    return new Promise((resolve) => {
+      const socket = new net.Socket();
+      let status = 'unknown';
+
+      socket.setTimeout(2500);
+
+      socket.connect(port, host, () => {
+        status = 'CONNECTED';
+        socket.destroy();
+      });
+
+      socket.on('timeout', () => {
+        status = 'TIMEOUT';
+        socket.destroy();
+      });
+
+      socket.on('error', (err: any) => {
+        status = `ERROR: ${err.message}`;
+      });
+
+      socket.on('close', () => {
+        resolve(status);
+      });
+    });
+  };
+
+  diagnostics.tcp['smtp.gmail.com:587'] = await testPort('smtp.gmail.com', 587);
+  diagnostics.tcp['smtp.gmail.com:465'] = await testPort('smtp.gmail.com', 465);
+  diagnostics.tcp['smtp.gmail.com:25'] = await testPort('smtp.gmail.com', 25);
+  diagnostics.tcp['smtp.gmail.com:2525'] = await testPort('smtp.gmail.com', 2525);
+
+  try {
+    const smtpUser = env.EMAIL_USER || env.SMTP_USER;
+    const smtpPass = env.EMAIL_PASS || env.SMTP_PASS;
+    const testTransporter = nodemailer.createTransport({
+      host: env.SMTP_HOST,
+      port: env.SMTP_PORT,
+      secure: env.SMTP_PORT === 465,
+      auth: smtpUser && smtpPass ? { user: smtpUser, pass: smtpPass } : undefined,
+      connectionTimeout: 4000,
+    });
+
+    await testTransporter.verify();
+    diagnostics.verify = 'SUCCESS';
+  } catch (err: any) {
+    diagnostics.verify = {
+      error: err.message || String(err),
+      code: err.code,
+      command: err.command,
+      stack: err.stack,
+    };
+  }
+
+  res.status(200).json(new ApiResponse(200, diagnostics, 'SMTP Diagnostics completed'));
+});
+
+
 // Root API response
 app.get('/', (_req, res) => {
   res.status(200).json(
