@@ -67,11 +67,21 @@ export const GateTerminalPage: React.FC = () => {
    */
   const extractTokenFromScan = useCallback((decodedText: string): string => {
     try {
+      // Robust extraction: if the text contains token=, extract everything after it
+      if (decodedText.includes('token=')) {
+        const parts = decodedText.split('token=');
+        if (parts.length > 1) {
+          // If there are other parameters after the token, strip them
+          const tokenPart = parts[1].split('&')[0];
+          return decodeURIComponent(tokenPart);
+        }
+      }
+      
       const url = new URL(decodedText);
       const token = url.searchParams.get('token');
       if (token) return token;
     } catch {
-      // Not a URL — treat the raw text as the token itself
+      // Fallback
     }
     return decodedText;
   }, []);
@@ -105,12 +115,13 @@ export const GateTerminalPage: React.FC = () => {
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
 
-    // Stop and release camera feed immediately while verifying
-    await cleanupCameraOnly();
     setScanState('verifying');
 
     const token = extractTokenFromScan(decodedText);
     setQrToken(token);
+
+    // Clean up camera in the background
+    cleanupCameraOnly().catch(err => console.error('Error stopping camera in background:', err));
 
     try {
       const res = await verifyQR({ qrToken: token, gate });
@@ -141,6 +152,9 @@ export const GateTerminalPage: React.FC = () => {
    * Start the full-screen camera QR scanner
    */
   const startScanner = useCallback(async () => {
+    // Stale camera cleanup first
+    await cleanupCameraOnly();
+
     setScannerError(null);
     setScanResult(null);
     setScanError(null);
@@ -162,7 +176,7 @@ export const GateTerminalPage: React.FC = () => {
         disableFlip: false,
       };
 
-      // Try exact environment camera constraint first, fallback to environment
+      // Try exact environment camera constraint first, fallback to general environment, fallback to default camera
       try {
         console.log("Starting scanner (exact environment)...");
         await html5QrCode.start(
@@ -180,19 +194,36 @@ export const GateTerminalPage: React.FC = () => {
         console.log("Scanner started (exact environment)");
       } catch (exactErr) {
         console.warn('Failed to start with exact environment, trying general environment fallback:', exactErr);
-        console.log("Starting scanner (fallback environment)...");
-        await html5QrCode.start(
-          { facingMode: 'environment' },
-          config,
-          (decodedText) => {
-            console.log("QR DETECTED:", decodedText);
-            handleCameraScanSuccess(decodedText);
-          },
-          (errorMessage) => {
-            console.log("Scan error (fallback):", errorMessage);
-          }
-        );
-        console.log("Scanner started (fallback environment)");
+        try {
+          console.log("Starting scanner (fallback environment)...");
+          await html5QrCode.start(
+            { facingMode: 'environment' },
+            config,
+            (decodedText) => {
+              console.log("QR DETECTED:", decodedText);
+              handleCameraScanSuccess(decodedText);
+            },
+            (errorMessage) => {
+              console.log("Scan error (fallback):", errorMessage);
+            }
+          );
+          console.log("Scanner started (fallback environment)");
+        } catch (fallbackErr) {
+          console.warn('Failed to start with general environment, trying default camera fallback:', fallbackErr);
+          console.log("Starting scanner (default camera)...");
+          await html5QrCode.start(
+            {}, // empty constraints - defaults to any available camera
+            config,
+            (decodedText) => {
+              console.log("QR DETECTED:", decodedText);
+              handleCameraScanSuccess(decodedText);
+            },
+            (errorMessage) => {
+              console.log("Scan error (default):", errorMessage);
+            }
+          );
+          console.log("Scanner started (default camera)");
+        }
       }
     } catch (err: any) {
       console.error('Camera scanner error:', err);
@@ -211,7 +242,7 @@ export const GateTerminalPage: React.FC = () => {
       setScanState('idle');
       setShowFullScreenScanner(false);
     }
-  }, [handleCameraScanSuccess]);
+  }, [handleCameraScanSuccess, cleanupCameraOnly]);
 
   /**
    * Stop the camera QR scanner and close the fullscreen overlay
@@ -477,347 +508,347 @@ export const GateTerminalPage: React.FC = () => {
                 </p>
               </div>
             )}
+          </div> {/* Close Camera viewfinder container */}
 
-            {/* VERIFYING LOADER OVERLAY */}
-            {scanState === 'verifying' && (
+          {/* VERIFYING LOADER OVERLAY */}
+          {scanState === 'verifying' && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '16px',
+              zIndex: 10010,
+              backdropFilter: 'blur(8px)',
+            }}>
               <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '16px',
-                zIndex: 10010,
-                backdropFilter: 'blur(8px)',
-              }}>
-                <div style={{
-                  width: '50px',
-                  height: '50px',
-                  border: '4px solid rgba(255,255,255,0.2)',
-                  borderTopColor: '#60a5fa',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite',
-                }} />
-                <span style={{ color: '#ffffff', fontSize: '1rem', fontWeight: 600, letterSpacing: '0.02em' }}>
-                  Verifying credentials...
-                </span>
-              </div>
-            )}
+                width: '50px',
+                height: '50px',
+                border: '4px solid rgba(255,255,255,0.2)',
+                borderTopColor: '#60a5fa',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+              }} />
+              <span style={{ color: '#ffffff', fontSize: '1rem', fontWeight: 600, letterSpacing: '0.02em' }}>
+                Verifying credentials...
+              </span>
+            </div>
+          )}
 
-            {/* SUCCESS VALID PASS CARD OVERLAY */}
-            {scanState === 'success' && (
+          {/* SUCCESS VALID PASS CARD OVERLAY */}
+          {scanState === 'success' && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.75)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+              zIndex: 10010,
+              backdropFilter: 'blur(4px)',
+            }}>
               <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '20px',
-                zIndex: 10010,
-                backdropFilter: 'blur(4px)',
+                backgroundColor: '#ffffff',
+                borderRadius: '20px',
+                width: '100%',
+                maxWidth: '380px',
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+                overflow: 'hidden',
+                animation: 'scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               }}>
+                {/* Header */}
                 <div style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '20px',
-                  width: '100%',
-                  maxWidth: '380px',
-                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
-                  overflow: 'hidden',
-                  animation: 'scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                  backgroundColor: '#10b981',
+                  padding: '24px 20px',
+                  textAlign: 'center',
+                  color: '#ffffff',
                 }}>
-                  {/* Header */}
                   <div style={{
-                    backgroundColor: '#10b981',
-                    padding: '24px 20px',
-                    textAlign: 'center',
-                    color: '#ffffff',
+                    width: '56px',
+                    height: '56px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 12px auto',
                   }}>
-                    <div style={{
-                      width: '56px',
-                      height: '56px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 12px auto',
-                    }}>
-                      <CheckCircle2 size={32} color="#ffffff" />
-                    </div>
-                    <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, letterSpacing: '0.02em' }}>
-                      VALID PASS
-                    </h3>
-                    <p style={{ margin: '4px 0 0 0', opacity: 0.95, fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                      {scanResult?.logType} LOGGED
-                    </p>
+                    <CheckCircle2 size={32} color="#ffffff" />
                   </div>
+                  <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, letterSpacing: '0.02em' }}>
+                    VALID PASS
+                  </h3>
+                  <p style={{ margin: '4px 0 0 0', opacity: 0.95, fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                    {scanResult?.logType} LOGGED
+                  </p>
+                </div>
 
-                  {/* Body Content */}
-                  <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                      {scanResult?.pass?.visitor?.idPhotoKey ? (
-                        <img
-                          src={`${api.defaults.baseURL}/visitor/photo/${scanResult.pass.visitor.id}`}
-                          alt="Profile"
-                          style={{
-                            width: '74px',
-                            height: '88px',
-                            objectFit: 'cover',
-                            borderRadius: '8px',
-                            border: '1px solid #e2e8f0',
-                          }}
-                        />
-                      ) : (
-                        <div style={{
+                {/* Body Content */}
+                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                    {scanResult?.pass?.visitor?.idPhotoKey ? (
+                      <img
+                        src={`${api.defaults.baseURL}/visitor/photo/${scanResult.pass.visitor.id}`}
+                        alt="Profile"
+                        style={{
                           width: '74px',
                           height: '88px',
-                          backgroundColor: '#f8fafc',
+                          objectFit: 'cover',
                           borderRadius: '8px',
-                          border: '1px dashed #cbd5e1',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#94a3b8',
-                          fontSize: '0.75rem',
-                          textAlign: 'center',
-                          padding: '4px',
-                          boxSizing: 'border-box',
-                        }}>
-                          <User size={18} />
-                          <span style={{ fontSize: '0.5625rem', marginTop: '2px' }}>No Photo</span>
-                        </div>
-                      )}
-
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <div>
-                          <span style={{ fontSize: '0.625rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Visitor Name</span>
-                          <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1e293b' }}>
-                            {scanResult?.pass?.visitor?.name}
-                          </span>
-                        </div>
-                        <div>
-                          <span style={{ fontSize: '0.625rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Pass Number</span>
-                          <span style={{ fontSize: '0.8125rem', fontWeight: 600, fontFamily: 'monospace', color: '#3b82f6' }}>
-                            {scanResult?.pass?.passNumber}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{ height: '1px', backgroundColor: '#f1f5f9' }} />
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                      <div>
-                        <span style={{ fontSize: '0.625rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Category / Type</span>
-                        <span style={{ fontSize: '0.8125rem', color: '#334155', fontWeight: 600 }}>
-                          {scanResult?.pass?.visitor?.category} ({scanResult?.pass?.passType})
-                        </span>
-                      </div>
-                      <div>
-                        <span style={{ fontSize: '0.625rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Gate Verified</span>
-                        <span style={{ fontSize: '0.8125rem', color: '#334155', fontWeight: 600 }}>
-                          {scanResult?.gate}
-                        </span>
-                      </div>
-                    </div>
-
-                    {scanResult?.vehiclePlate && (
+                          border: '1px solid #e2e8f0',
+                        }}
+                      />
+                    ) : (
                       <div style={{
-                        backgroundColor: '#f0f9ff',
-                        border: '1px solid #e0f2fe',
-                        padding: '6px 10px',
-                        borderRadius: '6px',
+                        width: '74px',
+                        height: '88px',
+                        backgroundColor: '#f8fafc',
+                        borderRadius: '8px',
+                        border: '1px dashed #cbd5e1',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#94a3b8',
+                        fontSize: '0.75rem',
+                        textAlign: 'center',
+                        padding: '4px',
+                        boxSizing: 'border-box',
                       }}>
-                        <span style={{ fontSize: '0.625rem', color: '#0284c7', textTransform: 'uppercase', display: 'block', fontWeight: 700 }}>Vehicle Plate</span>
-                        <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0369a1', fontFamily: 'monospace' }}>
-                          {scanResult?.vehiclePlate}
-                        </span>
+                        <User size={18} />
+                        <span style={{ fontSize: '0.5625rem', marginTop: '2px' }}>No Photo</span>
                       </div>
                     )}
 
-                    {scanResult?.dwellMinutes !== null && scanResult?.dwellMinutes !== undefined && (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <div>
-                        <span style={{ fontSize: '0.625rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Dwell Time</span>
-                        <span style={{ fontSize: '0.8125rem', color: '#334155', fontWeight: 600 }}>
-                          {scanResult?.dwellMinutes} minutes
+                        <span style={{ fontSize: '0.625rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Visitor Name</span>
+                        <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1e293b' }}>
+                          {scanResult?.pass?.visitor?.name}
                         </span>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div style={{
-                    backgroundColor: '#f8fafc',
-                    padding: '12px 16px',
-                    borderTop: '1px solid #f1f5f9',
-                    display: 'flex',
-                    gap: '10px',
-                  }}>
-                    <button
-                      onClick={stopScanner}
-                      style={{
-                        flex: 1,
-                        padding: '10px',
-                        backgroundColor: '#e2e8f0',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#475569',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                      }}
-                    >
-                      Close
-                    </button>
-                    <button
-                      onClick={startScanner}
-                      style={{
-                        flex: 2,
-                        padding: '10px',
-                        background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        boxShadow: '0 3px 8px rgba(16, 185, 129, 0.2)',
-                      }}
-                    >
-                      Scan Next
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* FAILURE INVALID PASS CARD OVERLAY */}
-            {scanState === 'failure' && (
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '20px',
-                zIndex: 10010,
-                backdropFilter: 'blur(4px)',
-              }}>
-                <div style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '20px',
-                  width: '100%',
-                  maxWidth: '380px',
-                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
-                  overflow: 'hidden',
-                  animation: 'scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                }}>
-                  {/* Header */}
-                  <div style={{
-                    backgroundColor: '#ef4444',
-                    padding: '24px 20px',
-                    textAlign: 'center',
-                    color: '#ffffff',
-                  }}>
-                    <div style={{
-                      width: '56px',
-                      height: '56px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 12px auto',
-                    }}>
-                      <XCircle size={32} color="#ffffff" />
+                      <div>
+                        <span style={{ fontSize: '0.625rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Pass Number</span>
+                        <span style={{ fontSize: '0.8125rem', fontWeight: 600, fontFamily: 'monospace', color: '#3b82f6' }}>
+                          {scanResult?.pass?.passNumber}
+                        </span>
+                      </div>
                     </div>
-                    <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, letterSpacing: '0.02em' }}>
-                      INVALID PASS
-                    </h3>
-                    <p style={{ margin: '4px 0 0 0', opacity: 0.95, fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                      ACCESS DENIED
-                    </p>
                   </div>
 
-                  {/* Body Content */}
-                  <div style={{ padding: '24px 20px', textAlign: 'center' }}>
-                    <p style={{ fontSize: '0.9375rem', color: '#1e293b', fontWeight: 600, margin: '0 0 14px 0', lineHeight: 1.5 }}>
-                      {scanError || 'An error occurred during pass verification.'}
-                    </p>
+                  <div style={{ height: '1px', backgroundColor: '#f1f5f9' }} />
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div>
+                      <span style={{ fontSize: '0.625rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Category / Type</span>
+                      <span style={{ fontSize: '0.8125rem', color: '#334155', fontWeight: 600 }}>
+                        {scanResult?.pass?.visitor?.category} ({scanResult?.pass?.passType})
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.625rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Gate Verified</span>
+                      <span style={{ fontSize: '0.8125rem', color: '#334155', fontWeight: 600 }}>
+                        {scanResult?.gate}
+                      </span>
+                    </div>
+                  </div>
+
+                  {scanResult?.vehiclePlate && (
                     <div style={{
-                      fontSize: '0.75rem',
-                      color: '#b91c1c',
-                      backgroundColor: 'rgba(239, 68, 68, 0.04)',
-                      border: '1px solid rgba(239, 68, 68, 0.12)',
-                      padding: '8px 12px',
+                      backgroundColor: '#f0f9ff',
+                      border: '1px solid #e0f2fe',
+                      padding: '6px 10px',
                       borderRadius: '6px',
-                      display: 'inline-block',
-                      fontWeight: 600,
                     }}>
-                      SECURITY WARNING: Do not admit to campus
+                      <span style={{ fontSize: '0.625rem', color: '#0284c7', textTransform: 'uppercase', display: 'block', fontWeight: 700 }}>Vehicle Plate</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0369a1', fontFamily: 'monospace' }}>
+                        {scanResult?.vehiclePlate}
+                      </span>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Actions */}
-                  <div style={{
-                    backgroundColor: '#f8fafc',
-                    padding: '12px 16px',
-                    borderTop: '1px solid #f1f5f9',
-                    display: 'flex',
-                    gap: '10px',
-                  }}>
-                    <button
-                      onClick={stopScanner}
-                      style={{
-                        flex: 1,
-                        padding: '10px',
-                        backgroundColor: '#e2e8f0',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#475569',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                      }}
-                    >
-                      Close
-                    </button>
-                    <button
-                      onClick={startScanner}
-                      style={{
-                        flex: 2,
-                        padding: '10px',
-                        background: 'linear-gradient(135deg, #b91c1c 0%, #ef4444 100%)',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#ffffff',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                        boxShadow: '0 3px 8px rgba(239, 68, 68, 0.25)',
-                      }}
-                    >
-                      Try Again
-                    </button>
-                  </div>
+                  {scanResult?.dwellMinutes !== null && scanResult?.dwellMinutes !== undefined && (
+                    <div>
+                      <span style={{ fontSize: '0.625rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Dwell Time</span>
+                      <span style={{ fontSize: '0.8125rem', color: '#334155', fontWeight: 600 }}>
+                        {scanResult?.dwellMinutes} minutes
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div style={{
+                  backgroundColor: '#f8fafc',
+                  padding: '12px 16px',
+                  borderTop: '1px solid #f1f5f9',
+                  display: 'flex',
+                  gap: '10px',
+                }}>
+                  <button
+                    onClick={stopScanner}
+                    style={{
+                      flex: 1,
+                      padding: '10px',
+                      backgroundColor: '#e2e8f0',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#475569',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={startScanner}
+                    style={{
+                      flex: 2,
+                      padding: '10px',
+                      background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      boxShadow: '0 3px 8px rgba(16, 185, 129, 0.2)',
+                    }}
+                  >
+                    Scan Next
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* FAILURE INVALID PASS CARD OVERLAY */}
+          {scanState === 'failure' && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.75)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+              zIndex: 10010,
+              backdropFilter: 'blur(4px)',
+            }}>
+              <div style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '20px',
+                width: '100%',
+                maxWidth: '380px',
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+                overflow: 'hidden',
+                animation: 'scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}>
+                {/* Header */}
+                <div style={{
+                  backgroundColor: '#ef4444',
+                  padding: '24px 20px',
+                  textAlign: 'center',
+                  color: '#ffffff',
+                }}>
+                  <div style={{
+                    width: '56px',
+                    height: '56px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 12px auto',
+                  }}>
+                    <XCircle size={32} color="#ffffff" />
+                  </div>
+                  <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, letterSpacing: '0.02em' }}>
+                    INVALID PASS
+                  </h3>
+                  <p style={{ margin: '4px 0 0 0', opacity: 0.95, fontSize: '0.8125rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                    ACCESS DENIED
+                  </p>
+                </div>
+
+                {/* Body Content */}
+                <div style={{ padding: '24px 20px', textAlign: 'center' }}>
+                  <p style={{ fontSize: '0.9375rem', color: '#1e293b', fontWeight: 600, margin: '0 0 14px 0', lineHeight: 1.5 }}>
+                    {scanError || 'An error occurred during pass verification.'}
+                  </p>
+                  <div style={{
+                    fontSize: '0.75rem',
+                    color: '#b91c1c',
+                    backgroundColor: 'rgba(239, 68, 68, 0.04)',
+                    border: '1px solid rgba(239, 68, 68, 0.12)',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    display: 'inline-block',
+                    fontWeight: 600,
+                  }}>
+                    SECURITY WARNING: Do not admit to campus
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div style={{
+                  backgroundColor: '#f8fafc',
+                  padding: '12px 16px',
+                  borderTop: '1px solid #f1f5f9',
+                  display: 'flex',
+                  gap: '10px',
+                }}>
+                  <button
+                    onClick={stopScanner}
+                    style={{
+                      flex: 1,
+                      padding: '10px',
+                      backgroundColor: '#e2e8f0',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#475569',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={startScanner}
+                    style={{
+                      flex: 2,
+                      padding: '10px',
+                      background: 'linear-gradient(135deg, #b91c1c 0%, #ef4444 100%)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      boxShadow: '0 3px 8px rgba(239, 68, 68, 0.25)',
+                    }}
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
