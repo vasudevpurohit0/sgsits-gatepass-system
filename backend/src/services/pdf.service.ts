@@ -1,19 +1,17 @@
 import PDFDocument from 'pdfkit';
 import { logger } from '../utils/logger';
 
-const formatIST = (d: Date | string) => new Date(d).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
-
 export class PdfService {
   /**
    * Programmatically generate the official SGSITS Entry/Exit Pass PDF in memory
+   * Matching the exact design from the portal view (Screenshot 1)
    */
   async generatePassPdf(pass: any, qrCodeBuffer: Buffer): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       try {
-        // Create a custom A6-sized ticket (approximately 105mm x 148mm)
-        // PDFKit uses points: A6 is ~298 x 420 points
+        // Standardize document dimensions: width 350 points, height 500 points
         const doc = new PDFDocument({
-          size: [298, 450],
+          size: [350, 500],
           margin: 15,
         });
 
@@ -25,115 +23,199 @@ export class PdfService {
           reject(err);
         });
 
-        // 1. Header Title (SGSITS Entry/Exit Pass)
-        doc.fontSize(12)
-           .font('Helvetica-Bold')
-           .fillColor('#1a365d')
-           .text('SGSITS ENTRY/EXIT PASS', { align: 'center' });
-        
-        doc.moveDown(0.3);
-
-        // 2. Status Badge (Green APPROVED)
-        doc.fontSize(10)
-           .font('Helvetica-Bold')
-           .fillColor('#2f855a')
-           .text('STATUS: APPROVED', { align: 'center' });
-
-        doc.moveDown(0.4);
-
-        // 3. Thick divider line
-        doc.moveTo(15, doc.y)
-           .lineTo(doc.page.width - 15, doc.y)
-           .strokeColor('#cbd5e0')
+        // 1. Draw the primary enclosing ticket border
+        doc.rect(15, 15, 320, 470)
+           .strokeColor('#000000')
            .lineWidth(1.5)
            .stroke();
+
+        // 2. Header Box (SGSITS Entry/Exit Pass)
+        doc.fontSize(10)
+           .font('Helvetica-Bold')
+           .fillColor('#002147')
+           .text('SGSITS Entry/Exit Pass', 15, 23, { align: 'center', width: 320 });
+
+        // Draw line under header row
+        doc.moveTo(15, 43)
+           .lineTo(335, 43)
+           .strokeColor('#000000')
+           .lineWidth(1.5)
+           .stroke();
+
+        // 3. Official Pass number label
+        doc.fontSize(9)
+           .font('Helvetica-Bold')
+           .fillColor('#c53030') // Bold red
+           .text(`OFFICIAL Visitor : ${pass.passNumber}`, 15, 59, { align: 'center', width: 320 });
+
+        // Draw line under pass number row
+        doc.moveTo(15, 79)
+           .lineTo(335, 79)
+           .strokeColor('#000000')
+           .lineWidth(1)
+           .stroke();
+
+        // 4. Construct Row Contents Array
+        const rows: { label: string; value: string; split?: { label: string; value: string } }[] = [];
+
+        rows.push({
+          label: 'Visitor Category',
+          value: pass.visitor?.category || 'GENERAL'
+        });
         
-        doc.moveDown(0.4);
-
-        // 4. Centered QR Code
-        const qrSize = 130;
-        const qrX = (doc.page.width - qrSize) / 2;
-        doc.image(qrCodeBuffer, qrX, doc.y, { width: qrSize, height: qrSize });
+        rows.push({
+          label: 'Pass Created by',
+          value: pass.createdByName || 'System Administrator'
+        });
         
-        // Move vertical insertion point below the QR code image
-        doc.y += qrSize;
-        doc.moveDown(0.4);
+        rows.push({
+          label: 'Pass Creator Dept/Section',
+          value: pass.creatorDept || 'IT Dept'
+        });
+        
+        rows.push({
+          label: 'Visitor Name',
+          value: pass.visitor?.name || 'N/A'
+        });
 
-        // 5. Details Section
-        doc.fillColor('#2d3748').fontSize(8);
+        // Mobile & Email Split Row
+        rows.push({
+          label: 'Mobile',
+          value: pass.visitor?.phone || 'N/A',
+          split: {
+            label: 'Email',
+            value: pass.visitor?.email || 'N/A'
+          }
+        });
 
-        // Helper function for formatted detail rows
-        const addDetailRow = (label: string, value: string) => {
-          if (!value) return;
-          doc.font('Helvetica-Bold')
-             .text(label + ': ', { continued: true })
-             .font('Helvetica')
-             .text(value);
+        rows.push({
+          label: 'Visitor ID Type & Number',
+          value: `${pass.visitor?.idType || 'OTHER'} (${pass.visitor?.idNumber || 'N/A'})`
+        });
+
+        rows.push({
+          label: 'Visit Purpose',
+          value: pass.purpose || 'N/A'
+        });
+
+        rows.push({
+          label: 'Coming From',
+          value: pass.comingFrom || 'N/A'
+        });
+
+        // Helper to format date period (e.g., 16/JUN/2026)
+        const formatPeriodDate = (d: Date | string) => {
+          const date = new Date(d);
+          const day = String(date.getDate()).padStart(2, '0');
+          const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+          const month = months[date.getMonth()];
+          const year = date.getFullYear();
+          return `${day}/${month}/${year}`;
         };
 
-        addDetailRow('Pass Number', pass.passNumber);
-        addDetailRow('Pass Type', pass.passType);
-        addDetailRow('Visitor Name', pass.visitor?.name);
-        addDetailRow('Visitor Phone', pass.visitor?.phone);
-        addDetailRow('Visitor Category', pass.visitor?.category);
-        addDetailRow('Purpose', pass.purpose);
+        rows.push({
+          label: 'Visit Period',
+          value: `From : ${formatPeriodDate(pass.validFrom)} To : ${formatPeriodDate(pass.validTo)}`
+        });
 
-        // Vehicle specific details if present
+        // If pass is VEHICLE type, include vehicle fields
         if (pass.passType === 'VEHICLE' && pass.vehiclePass) {
           const vp = pass.vehiclePass;
           const v = vp.vehicle;
-          if (v) {
-            addDetailRow('Vehicle Plate', v.numberPlate);
-            addDetailRow('Vehicle Type', v.vehicleType);
-            if (v.make || v.model) {
-              addDetailRow('Vehicle Make/Model', `${v.make || ''} ${v.model || ''}`.trim());
-            }
-          }
-          addDetailRow('Driver Name', vp.driverName);
-          addDetailRow('Driver Phone', vp.driverPhone);
+          rows.push({
+            label: 'Vehicle Plate & Type',
+            value: `${v?.numberPlate || 'N/A'} (${v?.vehicleType || 'OTHER'})`
+          });
+          rows.push({
+            label: 'Driver Name & Phone',
+            value: `${vp.driverName || 'N/A'} (${vp.driverPhone || 'N/A'})`
+          });
         }
 
-        // Hostel Guest details if present
+        // If pass is HOSTEL_GUEST type, include hostel fields
         if (pass.passType === 'HOSTEL_GUEST' && pass.hostelGuest) {
           const hg = pass.hostelGuest;
-          addDetailRow('Hostel Block', hg.hostelBlock);
-          addDetailRow('Room Number', hg.roomNumber);
-          addDetailRow('Planned Nights', String(hg.plannedNights));
+          rows.push({
+            label: 'Hostel Block & Room',
+            value: `${hg.hostelBlock || 'N/A'} - Room ${hg.roomNumber || 'N/A'}`
+          });
           if (hg.warden) {
-            addDetailRow('Approving Warden', `${hg.warden.firstName} ${hg.warden.lastName}`);
+            rows.push({
+              label: 'Approving Warden',
+              value: `${hg.warden.firstName} ${hg.warden.lastName}`
+            });
           }
         }
 
-        // Additional location columns from Phase 8
-        if (pass.createdByName) addDetailRow('Created By', pass.createdByName);
-        if (pass.creatorDept) addDetailRow('Department', pass.creatorDept);
-        if (pass.comingFrom) addDetailRow('Coming From', pass.comingFrom);
+        // 5. Draw rows dynamically
+        let currentY = 79;
+        const rowHeight = 20;
 
-        addDetailRow('Valid From', formatIST(pass.validFrom));
-        addDetailRow('Valid To', formatIST(pass.validTo));
+        for (const row of rows) {
+          doc.fontSize(8).fillColor('#000000');
 
-        if (pass.allowedGates && pass.allowedGates.length > 0) {
-          addDetailRow('Allowed Gates', pass.allowedGates.join(', '));
+          if (row.split) {
+            // Draw left column key-value
+            doc.font('Helvetica-Bold')
+               .text(`  ${row.label} : `, 15, currentY + 6, { continued: true })
+               .font('Helvetica')
+               .text(row.value);
+
+            // Draw splitting vertical divider line
+            doc.moveTo(175, currentY)
+               .lineTo(175, currentY + rowHeight)
+               .strokeColor('#000000')
+               .lineWidth(1)
+               .stroke();
+
+            // Draw right column key-value
+            doc.font('Helvetica-Bold')
+               .text(`  ${row.split.label} : `, 175, currentY + 6, { continued: true })
+               .font('Helvetica')
+               .text(row.split.value);
+          } else {
+            // Draw single full-width key-value
+            doc.font('Helvetica-Bold')
+               .text(`  ${row.label} : `, 15, currentY + 6, { continued: true })
+               .font('Helvetica')
+               .text(row.value);
+          }
+
+          currentY += rowHeight;
+
+          // Draw horizontal dividing line below the row
+          doc.moveTo(15, currentY)
+             .lineTo(335, currentY)
+             .strokeColor('#000000')
+             .lineWidth(1)
+             .stroke();
         }
 
-        doc.moveDown(0.8);
+        // 6. Draw QR Code centered inside a border box
+        const qrBoxSize = 100;
+        const qrBoxX = (doc.page.width - qrBoxSize) / 2;
+        const qrBoxY = currentY + 15;
 
-        // 6. Thin divider line before footer
-        doc.moveTo(15, doc.y)
-           .lineTo(doc.page.width - 15, doc.y)
-           .strokeColor('#e2e8f0')
+        // Draw QR box border
+        doc.rect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize)
+           .strokeColor('#000000')
            .lineWidth(1)
            .stroke();
-        
-        doc.moveDown(0.4);
+
+        // Embed the QR image inside
+        doc.image(qrCodeBuffer, qrBoxX + 2, qrBoxY + 2, {
+          width: qrBoxSize - 4,
+          height: qrBoxSize - 4
+        });
 
         // 7. Footer Text (Red)
+        const footerY = qrBoxY + qrBoxSize + 15;
         doc.fontSize(8)
            .font('Helvetica-Bold')
            .fillColor('#e53e3e')
-           .text('Please show this at SGSITS entry/exit gate', { align: 'center' });
+           .text('Please show this at SGSITS entry/exit gate', 15, footerY, { align: 'center', width: 320 });
 
-        // Finalize the PDF document
+        // Finalize PDF stream
         doc.end();
       } catch (err) {
         logger.error('❌ Failed during PDF generation process:', err);

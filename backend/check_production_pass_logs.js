@@ -28,7 +28,7 @@ async function main() {
     };
 
     // 2. Fetch pass details
-    const passId = '88a68f35-3ea5-4b03-b576-fdf4f848975b';
+    const passId = '2ad7bba5-a007-4c67-bb43-6265d4b4c59e';
     console.log(`\nFetching details for pass ${passId} from production...`);
     const passRes = await fetch(`${baseURL}/pass/${passId}`, {
       method: 'GET',
