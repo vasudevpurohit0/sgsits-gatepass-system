@@ -4,9 +4,9 @@
   --bg: #f8fafc;               /* Light slate background */
   --border: #e2e8f0;
   --code-bg: #f1f5f9;
-  --accent: #002147;
-  --accent-bg: rgba(0, 33, 71, 0.05);
-  --accent-border: rgba(0, 33, 71, 0.25);
+  --accent: #0056b3;
+  --accent-bg: rgba(0, 86, 179, 0.05);
+  --accent-border: rgba(0, 86, 179, 0.25);
   --social-bg: rgba(241, 245, 249, 0.5);
   --shadow:
     rgba(0, 0, 0, 0.05) 0 10px 15px -3px, rgba(0, 0, 0, 0.02) 0 4px 6px -2px;

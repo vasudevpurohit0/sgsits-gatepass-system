@@ -158,7 +158,7 @@ export const VisitorListPage: React.FC = () => {
       <div className="card-standard" style={{ padding: 0, overflowX: 'auto' }}>
         {loading ? (
           <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-            <Loader2 size={32} className="animate-spin" style={{ color: '#002147' }} />
+            <Loader2 size={32} className="animate-spin" style={{ color: 'var(--primary)' }} />
             <p style={{ marginTop: '1rem', fontSize: '0.875rem' }}>Loading directory...</p>
           </div>
         ) : visitors.length === 0 ? (

@@ -887,22 +887,22 @@ export const GateTerminalPage: React.FC = () => {
                   gap: '0.75rem',
                   fontSize: '1.125rem',
                   fontWeight: 700,
-                  borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #002147 0%, #0056b3 100%)',
+                  borderRadius: '24px',
+                  background: 'linear-gradient(135deg, #0056b3 0%, #004494 100%)',
                   border: 'none',
                   color: '#ffffff',
                   cursor: 'pointer',
-                  boxShadow: '0 6px 20px rgba(0, 33, 71, 0.35)',
+                  boxShadow: '0 6px 20px rgba(0, 86, 179, 0.25)',
                   transition: 'transform 0.2s, box-shadow 0.2s',
                   letterSpacing: '0.02em',
                 }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 33, 71, 0.45)';
+                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 86, 179, 0.35)';
                 }}
                 onMouseOut={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 33, 71, 0.35)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 86, 179, 0.25)';
                 }}
               >
                 <Camera size={22} /> Open Camera & Scan QR
@@ -1072,14 +1072,14 @@ export const GateTerminalPage: React.FC = () => {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    background: 'linear-gradient(135deg, #002147 0%, #0056b3 100%)',
+                    background: 'linear-gradient(135deg, #0056b3 0%, #004494 100%)',
                     border: 'none',
                     color: '#ffffff',
-                    borderRadius: '12px',
+                    borderRadius: '24px',
                     fontWeight: 600,
                     cursor: 'pointer',
                     fontSize: '1rem',
-                    boxShadow: '0 4px 14px rgba(0, 33, 71, 0.3)',
+                    boxShadow: '0 4px 14px rgba(0, 86, 179, 0.2)',
                   }}
                 >
                   <Camera size={18} /> Scan Next Visitor
@@ -1117,10 +1117,10 @@ export const GateTerminalPage: React.FC = () => {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    background: 'linear-gradient(135deg, #002147 0%, #0056b3 100%)',
+                    background: 'linear-gradient(135deg, #0056b3 0%, #004494 100%)',
                     border: 'none',
                     color: '#ffffff',
-                    borderRadius: '10px',
+                    borderRadius: '24px',
                     fontWeight: 600,
                     cursor: 'pointer',
                   }}

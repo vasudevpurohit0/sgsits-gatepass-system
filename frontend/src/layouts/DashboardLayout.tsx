@@ -87,8 +87,6 @@ export const DashboardLayout: React.FC = () => {
       {/* Sidebar navigation */}
       <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{
         width: '260px',
-        backgroundColor: '#002147',
-        borderRight: '1px solid #003366',
         display: 'flex',
         flexDirection: 'column',
         padding: '1.5rem',
@@ -97,29 +95,20 @@ export const DashboardLayout: React.FC = () => {
         color: '#ffffff',
       }}>
         {/* Subtle Institutional Identity Header */}
-        <div className="sidebar-identity" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="sidebar-identity">
           <img 
             src="/SGSITS_LOGO.png" 
             alt="SGSITS Logo" 
-            style={{ 
-              width: '38px', 
-              height: '38px', 
-              objectFit: 'contain', 
-              flexShrink: 0, 
-              backgroundColor: '#ffffff', 
-              borderRadius: '50%', 
-              padding: '2px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-            }} 
+            className="sidebar-logo-img"
           />
-          <div>
+          <div className="sidebar-identity-text">
             <h3 className="sidebar-identity-title">SGSITS</h3>
-            <span className="sidebar-identity-subtitle">Visitor Entry-Exit</span>
-            <span className="sidebar-identity-tagline">Security Operations Platform</span>
+            <span className="sidebar-identity-subtitle">Visitor Access</span>
+            <span className="sidebar-identity-tagline">Security Control Platform</span>
           </div>
         </div>
 
-        <nav className="sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flexGrow: 1 }}>
+        <nav className="sidebar-nav">
           {navigationItems.filter(item => item.show).map((item) => {
             const isActive = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
             return (
@@ -129,36 +118,13 @@ export const DashboardLayout: React.FC = () => {
                   navigate(item.path);
                   setMobileMenuOpen(false);
                 }}
-                className={`nav-button ${isActive ? 'active' : ''}`}
+                className={`nav-item-custom ${isActive ? 'active' : ''}`}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.85rem',
-                  padding: '0.75rem 1rem',
                   border: 'none',
-                  borderLeft: isActive ? '3px solid #3b82f6' : '3px solid transparent',
-                  borderRadius: isActive ? '0 6px 6px 0' : '6px',
-                  background: isActive ? 'rgba(255, 255, 255, 0.07)' : 'transparent',
-                  color: isActive ? '#ffffff' : '#cbd5e1',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
+                  background: 'none',
                   cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease',
-                  marginLeft: isActive ? '-1.5rem' : '0',
-                  paddingLeft: isActive ? '2.25rem' : '1rem',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
-                    e.currentTarget.style.color = '#ffffff';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#cbd5e1';
-                  }
+                  width: '100%',
+                  boxSizing: 'border-box',
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center' }}>{item.icon}</span>
@@ -168,20 +134,20 @@ export const DashboardLayout: React.FC = () => {
           })}
         </nav>
 
-        <div className="sidebar-footer" style={{ borderTop: '1px solid #1e293b', paddingTop: '1.25rem', marginTop: 'auto' }}>
+        <div className="sidebar-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem', marginTop: 'auto' }}>
           <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
             <div style={{
               width: '36px',
               height: '36px',
-              borderRadius: '6px',
-              backgroundColor: '#1e293b',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '50%',
+              backgroundColor: '#0056b3',
+              border: '1.5px solid rgba(255, 255, 255, 0.2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 700,
               fontSize: '0.875rem',
-              color: '#cbd5e1',
+              color: '#ffffff',
               flexShrink: 0,
             }}>
               {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
@@ -192,11 +158,11 @@ export const DashboardLayout: React.FC = () => {
               </span>
               <span style={{
                 fontSize: '0.65rem',
-                color: '#94a3b8',
+                color: '#cbd5e1',
                 textTransform: 'uppercase',
                 backgroundColor: 'rgba(255, 255, 255, 0.08)',
                 padding: '2px 6px',
-                borderRadius: '4px',
+                borderRadius: '10px',
                 fontWeight: '700',
                 display: 'inline-block',
                 marginTop: '2px',
@@ -217,8 +183,9 @@ export const DashboardLayout: React.FC = () => {
               alignItems: 'center', 
               justifyContent: 'center', 
               gap: '0.5rem',
-              padding: '0.45rem 1rem',
-              fontSize: '0.8125rem'
+              padding: '0.55rem 1rem',
+              fontSize: '0.8125rem',
+              borderRadius: '20px'
             }}
           >
             <LogOut size={14} /> Sign Out
@@ -231,8 +198,7 @@ export const DashboardLayout: React.FC = () => {
         {/* Top Header */}
         <header className="dashboard-header" style={{
           height: '64px',
-          backgroundColor: 'var(--bg-surface)',
-          borderBottom: '1px solid var(--border-color)',
+          backgroundColor: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -254,27 +220,27 @@ export const DashboardLayout: React.FC = () => {
           </button>
           
           <div className="dashboard-header-title">
-            <h1 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-h)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-              {navigationItems.find(item => location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path)))?.name || 'Dashboard'}
+            <h1 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+              {navigationItems.find(item => location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path)))?.name || 'Overview'}
             </h1>
           </div>
 
           <div className="dashboard-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
             {/* Live Clock Display */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8125rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-              <Clock size={13} style={{ color: '#64748b' }} />
+            <div className="header-clock-standard">
+              <Clock size={13} style={{ color: '#0056b3' }} />
               <span>
                 {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
               </span>
-              <span style={{ color: '#cbd5e1', margin: '0 0.25rem' }}>|</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--text-h)' }}>
+              <span style={{ color: '#cbd5e1', margin: '0 0.15rem' }}>|</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#0f172a' }}>
                 {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
               </span>
             </div>
             {/* Connection Status Indicator */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-              <span className="dot pulse green" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></span>
-              <span style={{ fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.02em', color: '#10b981' }}>System Hub</span>
+            <div className="system-status-indicator">
+              <span className="dot"></span>
+              <span>System Hub</span>
             </div>
           </div>
         </header>

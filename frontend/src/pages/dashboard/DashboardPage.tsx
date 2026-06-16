@@ -144,31 +144,70 @@ export const DashboardPage: React.FC = () => {
         </nav>
       </div>
 
-      {/* Hero Command Center Section */}
+      {/* Hero Command Center Section - Redesigned as Live Campus Security Map HUD */}
       <section className="command-center" style={{ margin: 0 }}>
         <div className="command-center-bg"></div>
+        
+        {/* Interactive Gate Map Pins Overlay */}
+        <div className="campus-map-overlay">
+          {/* Main Entrance Pin */}
+          <div className="gate-map-pin gate-1">
+            <div className="gate-pin-circle"></div>
+            <div className="gate-telemetry-hud">
+              <div className="gate-hud-title">Gate 1: Main Entrance</div>
+              <div className="gate-hud-stat"><span>Status</span><span style={{ color: '#10b981', fontWeight: 'bold' }}>ONLINE</span></div>
+              <div className="gate-hud-stat"><span>Live Logs</span><span>{metrics.visitorsToday}</span></div>
+              <div className="gate-hud-stat"><span>Clearance</span><span>Guard Scan</span></div>
+            </div>
+          </div>
+
+          {/* Hostel Gate Pin */}
+          <div className="gate-map-pin gate-2">
+            <div className="gate-pin-circle"></div>
+            <div className="gate-telemetry-hud">
+              <div className="gate-hud-title">Gate 2: Hostel Access</div>
+              <div className="gate-hud-stat"><span>Status</span><span style={{ color: '#10b981', fontWeight: 'bold' }}>ONLINE</span></div>
+              <div className="gate-hud-stat"><span>Active Passes</span><span>{metrics.activePasses}</span></div>
+              <div className="gate-hud-stat"><span>Clearance</span><span>Warden Auth</span></div>
+            </div>
+          </div>
+
+          {/* Library / Rear Pin */}
+          <div className="gate-map-pin gate-3">
+            <div className="gate-pin-circle"></div>
+            <div className="gate-telemetry-hud">
+              <div className="gate-hud-title">Gate 3: Rear Gate</div>
+              <div className="gate-hud-stat"><span>Status</span><span style={{ color: '#10b981', fontWeight: 'bold' }}>ONLINE</span></div>
+              <div className="gate-hud-stat"><span>Verification</span><span>Automated</span></div>
+              <div className="gate-hud-stat"><span>Traffic</span><span>Nominal</span></div>
+            </div>
+          </div>
+        </div>
+
         <div className="command-center-content">
           <div className="command-center-text">
-            <h2>Security Operations Dashboard</h2>
+            <h2>Campus Security <strong>Control Map</strong></h2>
             <p>
-              Monitoring visitor access requests, approvals, active passes and gate activities. 
-              Review credentials, manage checklists, and authorize clearance protocols.
+              Real-time monitoring of SGSITS campus access requests, active pass counts, and entry/exit telemetry. 
+              Hover over coordinate map pins for live gate terminal metrics.
             </p>
           </div>
           <div className="command-center-meta">
             <div className="meta-item">
-              <span>User:</span>
+              <span>Security Officer:</span>
               <strong>{user?.firstName} {user?.lastName}</strong>
             </div>
             <div className="meta-item">
-              <span>Role:</span>
-              <strong style={{ textTransform: 'uppercase', fontSize: '0.75rem', color: '#93c5fd' }}>
+              <span>Station Role:</span>
+              <strong style={{ textTransform: 'uppercase', fontSize: '0.75rem', color: '#60a5fa' }}>
                 {formatRole(user?.role || '')}
               </strong>
             </div>
             <div className="meta-item">
-              <span className="dot pulse" style={{ backgroundColor: '#10b981', width: '6px', height: '6px' }}></span>
-              <span style={{ color: '#10b981', fontWeight: 600 }}>Nominal Status</span>
+              <div className="system-status-indicator">
+                <span className="dot"></span>
+                <span>Active Link</span>
+              </div>
             </div>
           </div>
         </div>
@@ -176,15 +215,15 @@ export const DashboardPage: React.FC = () => {
 
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6rem 0', color: 'var(--text-muted)' }}>
-          <Loader2 size={32} className="animate-spin" style={{ color: '#002147' }} />
+          <Loader2 size={32} className="animate-spin" style={{ color: 'var(--primary)' }} />
           <p style={{ marginTop: '1rem', fontSize: '0.9rem', fontWeight: 500 }}>Fetching live operation parameters...</p>
         </div>
       ) : activeTab === 'overview' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           {/* Enterprise Metrics Grid */}
-          <div className="stats-grid" style={{ margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-            <div className="enterprise-metric-card">
+          <div className="stats-grid" style={{ margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
+            <div className="enterprise-metric-card active-passes-card">
               <div className="metric-icon-box success">
                 <Ticket size={18} />
               </div>
@@ -194,7 +233,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="enterprise-metric-card">
+            <div className="enterprise-metric-card pending-reviews-card">
               <div className="metric-icon-box alert">
                 <UserCheck size={18} />
               </div>
@@ -204,7 +243,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="enterprise-metric-card">
+            <div className="enterprise-metric-card visitors-today-card">
               <div className="metric-icon-box info">
                 <Users size={18} />
               </div>
@@ -214,7 +253,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="enterprise-metric-card">
+            <div className="enterprise-metric-card total-passes-card">
               <div className="metric-icon-box primary">
                 <ClipboardList size={18} />
               </div>
@@ -268,8 +307,8 @@ export const DashboardPage: React.FC = () => {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {can('create_pass') && (
-                    <button onClick={() => navigate('/passes/new')} className="action-shortcut-card">
-                      <PlusCircle size={18} style={{ color: '#002147' }} />
+                    <button onClick={() => navigate('/passes/new')} className="action-shortcut-card" style={{ border: 'none', background: 'none', width: '100%', boxSizing: 'border-box' }}>
+                      <PlusCircle size={18} style={{ color: '#0056b3' }} />
                       <div>
                         <h4 className="action-shortcut-title">Request Visitor Pass</h4>
                         <p className="action-shortcut-desc">Generate new authorization clearance pass</p>
@@ -277,7 +316,7 @@ export const DashboardPage: React.FC = () => {
                     </button>
                   )}
                   {can('approve_pass') && (
-                    <button onClick={() => navigate('/passes')} className="action-shortcut-card">
+                    <button onClick={() => navigate('/passes')} className="action-shortcut-card" style={{ border: 'none', background: 'none', width: '100%', boxSizing: 'border-box' }}>
                       <UserCheck size={18} style={{ color: '#d97706' }} />
                       <div>
                         <h4 className="action-shortcut-title">Review Pending Requests</h4>
@@ -286,7 +325,7 @@ export const DashboardPage: React.FC = () => {
                     </button>
                   )}
                   {can('scan_qr') && (
-                    <button onClick={() => navigate('/terminal')} className="action-shortcut-card">
+                    <button onClick={() => navigate('/terminal')} className="action-shortcut-card" style={{ border: 'none', background: 'none', width: '100%', boxSizing: 'border-box' }}>
                       <Scan size={18} style={{ color: '#059669' }} />
                       <div>
                         <h4 className="action-shortcut-title">Open Gate Terminal</h4>
@@ -295,8 +334,8 @@ export const DashboardPage: React.FC = () => {
                     </button>
                   )}
                   {['SECURITY_ADMIN', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN', 'SECURITY_GUARD'].includes(user?.role || '') && (
-                    <button onClick={() => navigate('/visitors')} className="action-shortcut-card">
-                      <Users size={18} style={{ color: '#2563eb' }} />
+                    <button onClick={() => navigate('/visitors')} className="action-shortcut-card" style={{ border: 'none', background: 'none', width: '100%', boxSizing: 'border-box' }}>
+                      <Users size={18} style={{ color: '#0056b3' }} />
                       <div>
                         <h4 className="action-shortcut-title">Visitor Directory</h4>
                         <p className="action-shortcut-desc">Browse historical profiles and manage blacklist</p>
@@ -304,7 +343,7 @@ export const DashboardPage: React.FC = () => {
                     </button>
                   )}
                   {['SECURITY_ADMIN', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '') && (
-                    <button onClick={() => navigate('/audit')} className="action-shortcut-card">
+                    <button onClick={() => navigate('/audit')} className="action-shortcut-card" style={{ border: 'none', background: 'none', width: '100%', boxSizing: 'border-box' }}>
                       <ClipboardList size={18} style={{ color: '#64748b' }} />
                       <div>
                         <h4 className="action-shortcut-title">Audit Logs</h4>
@@ -317,7 +356,7 @@ export const DashboardPage: React.FC = () => {
 
               {/* System Node status */}
               <div className="card-standard" style={{ padding: '1.25rem' }}>
-                <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-h)', textTransform: 'uppercase', letterSpacing: '0.03em', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '0.75rem' }}>
+                <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.03em', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '0.75rem' }}>
                   Operational Services Status
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
@@ -364,7 +403,7 @@ export const DashboardPage: React.FC = () => {
               {/* Student/Faculty Flow */}
               <div className="workflow-card">
                 <div className="workflow-card-header">
-                  <Ticket size={16} /> Student & Faculty Pass Generation Flow
+                  <Ticket size={16} style={{ color: '#0056b3' }} /> Student & Faculty Pass Generation Flow
                 </div>
                 <div className="workflow-flow">
                   <div className="workflow-step">
@@ -396,7 +435,7 @@ export const DashboardPage: React.FC = () => {
               {/* Warden Flow */}
               <div className="workflow-card">
                 <div className="workflow-card-header">
-                  <UserCheck size={16} /> Hostel Warden Clearance Flow
+                  <UserCheck size={16} style={{ color: '#d97706' }} /> Hostel Warden Clearance Flow
                 </div>
                 <div className="workflow-flow">
                   <div className="workflow-step">
@@ -428,7 +467,7 @@ export const DashboardPage: React.FC = () => {
               {/* Security guard scan flow */}
               <div className="workflow-card">
                 <div className="workflow-card-header">
-                  <Scan size={16} /> Gate Officer Verification Flow
+                  <Scan size={16} style={{ color: '#059669' }} /> Gate Officer Verification Flow
                 </div>
                 <div className="workflow-flow">
                   <div className="workflow-step">
