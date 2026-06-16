@@ -34,6 +34,41 @@ export const DashboardPage: React.FC = () => {
   
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [leafletLoaded, setLeafletLoaded] = useState(false);
+
+  useEffect(() => {
+    // Load Leaflet CSS CDN
+    const cssId = 'leaflet-css-cdn';
+    if (!document.getElementById(cssId)) {
+      const link = document.createElement('link');
+      link.id = cssId;
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+
+    // Load Leaflet JS CDN
+    const jsId = 'leaflet-js-cdn';
+    if (!document.getElementById(jsId)) {
+      const script = document.createElement('script');
+      script.id = jsId;
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.async = true;
+      script.onload = () => {
+        setLeafletLoaded(true);
+      };
+      document.body.appendChild(script);
+    } else {
+      if ((window as any).L) {
+        setLeafletLoaded(true);
+      } else {
+        const scriptEl = document.getElementById(jsId);
+        if (scriptEl) {
+          scriptEl.addEventListener('load', () => setLeafletLoaded(true));
+        }
+      }
+    }
+  }, []);
 
   const loadDashboardData = async () => {
     try {
@@ -100,6 +135,117 @@ export const DashboardPage: React.FC = () => {
     loadDashboardData();
   }, []);
 
+  useEffect(() => {
+    if (!leafletLoaded || loading || activeTab !== 'overview') return;
+
+    const L = (window as any).L;
+    if (!L) return;
+
+    const container = document.getElementById('campus-leaflet-map');
+    if (!container) return;
+
+    if ((container as any)._leaflet_id) {
+      return;
+    }
+
+    // Center precisely on SGSITS Indore campus coordinate: 22.725225, 75.871388
+    const map = L.map('campus-leaflet-map', {
+      zoomControl: true,
+      scrollWheelZoom: true,
+      attributionControl: false
+    }).setView([22.725225, 75.871388], 17);
+
+    // CartoDB Voyager premium tiles (clean architectural map styling)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 20,
+      minZoom: 15
+    }).addTo(map);
+
+    // Pulsing coordinate pins
+    const createCustomMarker = (pulseColor: string = '#10b981') => {
+      const html = `
+        <div style="
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+        ">
+          <div style="
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: ${pulseColor};
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+            z-index: 2;
+          "></div>
+          <div style="
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background-color: ${pulseColor};
+            opacity: 0.35;
+            border-radius: 50%;
+            animation: mapPulse 2s infinite;
+            z-index: 1;
+          "></div>
+        </div>
+      `;
+      return L.divIcon({
+        html: html,
+        className: 'custom-leaflet-marker',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+    };
+
+    // Main Entrance (Gate 1)
+    const gate1Marker = L.marker([22.724263, 75.871388], {
+      icon: createCustomMarker('#10b981')
+    }).addTo(map);
+    gate1Marker.bindPopup(`
+      <div style="font-family: 'Outfit', sans-serif; padding: 2px; min-width: 140px;">
+        <h4 style="margin: 0 0 6px 0; color: #0056b3; font-size: 0.875rem; font-weight: 700; text-transform: uppercase; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 4px;">Gate 1: Main Gate</h4>
+        <div style="font-size: 0.75rem; color: #475569; margin-bottom: 3px;"><strong>Status:</strong> <span style="color: #10b981; font-weight: 700;">ONLINE</span></div>
+        <div style="font-size: 0.75rem; color: #475569; margin-bottom: 3px;"><strong>Entries Today:</strong> ${metrics.visitorsToday}</div>
+        <div style="font-size: 0.75rem; color: #475569;"><strong>Clearance:</strong> Guard Console</div>
+      </div>
+    `);
+
+    // Hostel Entrance (Gate 2)
+    const gate2Marker = L.marker([22.725800, 75.872800], {
+      icon: createCustomMarker('#0056b3')
+    }).addTo(map);
+    gate2Marker.bindPopup(`
+      <div style="font-family: 'Outfit', sans-serif; padding: 2px; min-width: 140px;">
+        <h4 style="margin: 0 0 6px 0; color: #0056b3; font-size: 0.875rem; font-weight: 700; text-transform: uppercase; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 4px;">Gate 2: Hostel Gate</h4>
+        <div style="font-size: 0.75rem; color: #475569; margin-bottom: 3px;"><strong>Status:</strong> <span style="color: #10b981; font-weight: 700;">ONLINE</span></div>
+        <div style="font-size: 0.75rem; color: #475569; margin-bottom: 3px;"><strong>Active Passes:</strong> ${metrics.activePasses}</div>
+        <div style="font-size: 0.75rem; color: #475569;"><strong>Clearance:</strong> Warden Review</div>
+      </div>
+    `);
+
+    // Rear Access (Gate 3)
+    const gate3Marker = L.marker([22.726200, 75.870800], {
+      icon: createCustomMarker('#f59e0b')
+    }).addTo(map);
+    gate3Marker.bindPopup(`
+      <div style="font-family: 'Outfit', sans-serif; padding: 2px; min-width: 140px;">
+        <h4 style="margin: 0 0 6px 0; color: #0056b3; font-size: 0.875rem; font-weight: 700; text-transform: uppercase; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 4px;">Gate 3: Rear Gate</h4>
+        <div style="font-size: 0.75rem; color: #475569; margin-bottom: 3px;"><strong>Status:</strong> <span style="color: #10b981; font-weight: 700;">ONLINE</span></div>
+        <div style="font-size: 0.75rem; color: #475569; margin-bottom: 3px;"><strong>Traffic:</strong> Nominal</div>
+        <div style="font-size: 0.75rem; color: #475569;"><strong>Clearance:</strong> Auto Scans</div>
+      </div>
+    `);
+
+    return () => {
+      map.remove();
+    };
+  }, [leafletLoaded, loading, activeTab, metrics]);
+
   const formatRole = (role: string) => {
     return role ? role.replace(/_/g, ' ') : '';
   };
@@ -146,70 +292,58 @@ export const DashboardPage: React.FC = () => {
 
       {/* Hero Command Center Section - Redesigned as Live Campus Security Map HUD */}
       <section className="command-center" style={{ margin: 0 }}>
-        <div className="command-center-bg"></div>
-        
-        {/* Interactive Gate Map Pins Overlay */}
-        <div className="campus-map-overlay">
-          {/* Main Entrance Pin */}
-          <div className="gate-map-pin gate-1">
-            <div className="gate-pin-circle"></div>
-            <div className="gate-telemetry-hud">
-              <div className="gate-hud-title">Gate 1: Main Entrance</div>
-              <div className="gate-hud-stat"><span>Status</span><span style={{ color: '#10b981', fontWeight: 'bold' }}>ONLINE</span></div>
-              <div className="gate-hud-stat"><span>Live Logs</span><span>{metrics.visitorsToday}</span></div>
-              <div className="gate-hud-stat"><span>Clearance</span><span>Guard Scan</span></div>
+        <div className="map-hud-sidebar">
+          <div>
+            <h3 style={{ margin: '0 0 0.25rem 0', color: '#ffffff', fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.01em' }}>Campus Control HUD</h3>
+            <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.75rem' }}>Live operations telemetry & gate control</p>
+          </div>
+          
+          {/* Officer Info */}
+          <div style={{ padding: '0.75rem', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Active Officer</div>
+            <div style={{ color: '#ffffff', fontWeight: 600, fontSize: '0.9rem', marginTop: '2px' }}>{user?.firstName} {user?.lastName}</div>
+            <div style={{ color: '#60a5fa', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600, marginTop: '2px' }}>{formatRole(user?.role || '')}</div>
+          </div>
+
+          {/* Gate Telemetry Status */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600, marginBottom: '2px' }}>Gate Operations</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+              <span style={{ color: '#cbd5e1', fontWeight: 500 }}>Gate 1 (Main Gate)</span>
+              <span style={{ color: '#10b981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 6px #10b981' }}></span> ONLINE
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+              <span style={{ color: '#cbd5e1', fontWeight: 500 }}>Gate 2 (Hostel Gate)</span>
+              <span style={{ color: '#10b981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 6px #10b981' }}></span> ONLINE
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0' }}>
+              <span style={{ color: '#cbd5e1', fontWeight: 500 }}>Gate 3 (Rear Gate)</span>
+              <span style={{ color: '#10b981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 6px #10b981' }}></span> ONLINE
+              </span>
             </div>
           </div>
 
-          {/* Hostel Gate Pin */}
-          <div className="gate-map-pin gate-2">
-            <div className="gate-pin-circle"></div>
-            <div className="gate-telemetry-hud">
-              <div className="gate-hud-title">Gate 2: Hostel Access</div>
-              <div className="gate-hud-stat"><span>Status</span><span style={{ color: '#10b981', fontWeight: 'bold' }}>ONLINE</span></div>
-              <div className="gate-hud-stat"><span>Active Passes</span><span>{metrics.activePasses}</span></div>
-              <div className="gate-hud-stat"><span>Clearance</span><span>Warden Auth</span></div>
+          {/* System Sync */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: 'auto', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+              <span style={{ color: '#94a3b8' }}>Database Sync</span>
+              <span style={{ color: '#10b981', fontWeight: 600 }}>SYNCED</span>
             </div>
-          </div>
-
-          {/* Library / Rear Pin */}
-          <div className="gate-map-pin gate-3">
-            <div className="gate-pin-circle"></div>
-            <div className="gate-telemetry-hud">
-              <div className="gate-hud-title">Gate 3: Rear Gate</div>
-              <div className="gate-hud-stat"><span>Status</span><span style={{ color: '#10b981', fontWeight: 'bold' }}>ONLINE</span></div>
-              <div className="gate-hud-stat"><span>Verification</span><span>Automated</span></div>
-              <div className="gate-hud-stat"><span>Traffic</span><span>Nominal</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+              <span style={{ color: '#94a3b8' }}>Email Dispatch</span>
+              <span style={{ color: '#10b981', fontWeight: 600 }}>READY</span>
             </div>
           </div>
         </div>
 
-        <div className="command-center-content">
-          <div className="command-center-text">
-            <h2>Campus Security <strong>Control Map</strong></h2>
-            <p>
-              Real-time monitoring of SGSITS campus access requests, active pass counts, and entry/exit telemetry. 
-              Hover over coordinate map pins for live gate terminal metrics.
-            </p>
-          </div>
-          <div className="command-center-meta">
-            <div className="meta-item">
-              <span>Security Officer:</span>
-              <strong>{user?.firstName} {user?.lastName}</strong>
-            </div>
-            <div className="meta-item">
-              <span>Station Role:</span>
-              <strong style={{ textTransform: 'uppercase', fontSize: '0.75rem', color: '#60a5fa' }}>
-                {formatRole(user?.role || '')}
-              </strong>
-            </div>
-            <div className="meta-item">
-              <div className="system-status-indicator">
-                <span className="dot"></span>
-                <span>Active Link</span>
-              </div>
-            </div>
-          </div>
+        {/* Map Container */}
+        <div className="map-hud-container">
+          <div id="campus-leaflet-map"></div>
         </div>
       </section>
 

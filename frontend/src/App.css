@@ -1500,195 +1500,69 @@ body {
 /* Interactive Campus Map HUD banner */
 .command-center {
   position: relative;
-  background: linear-gradient(135deg, rgba(6, 15, 34, 0.96) 0%, rgba(10, 25, 54, 0.9) 100%) !important;
+  background: linear-gradient(135deg, rgba(6, 15, 34, 0.98) 0%, rgba(10, 25, 54, 0.95) 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 24px !important;
   padding: 0 !important;
   margin-bottom: 2rem !important;
   overflow: hidden;
-  height: 250px;
+  height: 400px !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+  display: flex !important;
+  flex-direction: row !important;
 }
 
-.command-center-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    linear-gradient(0deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    url('/sgsits_campus.png');
-  background-size: 20px 20px, 20px 20px, cover;
-  background-position: center;
-  opacity: 0.12;
-  filter: grayscale(40%) contrast(110%);
-  z-index: 0;
-  pointer-events: none;
+.map-hud-sidebar {
+  width: 30% !important;
+  min-width: 280px !important;
+  padding: 1.5rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1rem !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(6, 15, 34, 0.95) !important;
+  z-index: 2 !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
 }
 
-/* Blueprint map grid layer overlay */
-.command-center-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 100%;
-  padding: 2rem;
-  box-sizing: border-box;
+.map-hud-container {
+  width: 70% !important;
+  height: 100% !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
-.command-center-text {
-  max-width: 50%;
+#campus-leaflet-map {
+  height: 100% !important;
+  width: 100% !important;
 }
 
-.command-center-text h2 {
-  font-size: 1.85rem !important;
-  font-weight: 300 !important;
+/* Leaflet map popup overrides for premium dark theme styling */
+.leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.95) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 16px !important;
   color: #ffffff !important;
-  margin: 0 0 0.5rem 0 !important;
-  letter-spacing: -0.01em;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
 }
 
-.command-center-text h2 strong {
-  font-weight: 800 !important;
-  background: linear-gradient(135deg, #cbd5e1 30%, #ffffff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
 
-.command-center-text p {
+.leaflet-popup-content {
+  margin: 12px 16px !important;
+}
+
+.leaflet-popup-close-button {
   color: #cbd5e1 !important;
-  font-size: 0.9375rem !important;
-  line-height: 1.5 !important;
-  margin: 0 !important;
 }
 
-/* Glassmorphism Right Pane HUD Overlay */
-.command-center-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  align-items: flex-start;
-  min-width: 240px;
-  background: rgba(15, 23, 42, 0.5) !important;
-  backdrop-filter: blur(8px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 20px !important;
-  padding: 1.25rem !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  font-size: 0.8125rem;
-  color: #94a3b8;
-}
-
-.meta-item strong {
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.system-status-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  background-color: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 0.75rem;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.system-status-indicator .dot {
-  width: 6px;
-  height: 6px;
-  background-color: #10b981;
-  border-radius: 50%;
-  display: inline-block;
-  box-shadow: 0 0 8px #10b981;
-}
-
-/* Floating Gate Control Map Pins */
-.campus-map-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.gate-map-pin {
-  position: absolute;
-  pointer-events: auto;
-  cursor: pointer;
-  z-index: 5;
-}
-
-/* Placing gates at specific coordinate points */
-.gate-map-pin.gate-1 { left: 45%; top: 35%; }
-.gate-map-pin.gate-2 { left: 60%; top: 65%; }
-.gate-map-pin.gate-3 { left: 78%; top: 40%; }
-
-.gate-pin-circle {
-  width: 14px;
-  height: 14px;
-  background-color: #10b981;
-  border: 3px solid #ffffff;
-  border-radius: 50%;
-  animation: mapPulse 2s infinite;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-/* Hover popup digital HUD */
-.gate-telemetry-hud {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%) scale(0.9);
-  opacity: 0;
-  pointer-events: none;
-  background: rgba(15, 23, 42, 0.92);
-  backdrop-filter: blur(10px);
-  border: 1.5px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  padding: 0.85rem 1.15rem;
-  width: 180px;
-  color: #ffffff;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-  z-index: 10;
-}
-
-.gate-map-pin:hover .gate-telemetry-hud {
-  opacity: 1;
-  transform: translateX(-50%) scale(1);
-  pointer-events: auto;
-}
-
-.gate-hud-title {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: #60a5fa;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-}
-
-.gate-hud-stat {
-  font-size: 0.75rem;
-  color: #cbd5e1;
-  margin: 2px 0;
-  display: flex;
-  justify-content: space-between;
+.leaflet-container {
+  background: #0b1528 !important;
 }
 
 /* Institutional Identity for Sidebar */
