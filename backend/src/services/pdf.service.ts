@@ -9,53 +9,7 @@ export class PdfService {
   async generatePassPdf(pass: any, qrCodeBuffer: Buffer): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       try {
-        // Standardize document dimensions: width 350 points, height 500 points
-        const doc = new PDFDocument({
-          size: [350, 500],
-          margin: 15,
-        });
-
-        const chunks: Buffer[] = [];
-        doc.on('data', (chunk) => chunks.push(chunk));
-        doc.on('end', () => resolve(Buffer.concat(chunks)));
-        doc.on('error', (err) => {
-          logger.error('❌ PDF Generation stream error:', err);
-          reject(err);
-        });
-
-        // 1. Draw the primary enclosing ticket border
-        doc.rect(15, 15, 320, 470)
-           .strokeColor('#000000')
-           .lineWidth(1.5)
-           .stroke();
-
-        // 2. Header Box (SGSITS Entry/Exit Pass)
-        doc.fontSize(10)
-           .font('Helvetica-Bold')
-           .fillColor('#002147')
-           .text('SGSITS Entry/Exit Pass', 15, 23, { align: 'center', width: 320 });
-
-        // Draw line under header row
-        doc.moveTo(15, 43)
-           .lineTo(335, 43)
-           .strokeColor('#000000')
-           .lineWidth(1.5)
-           .stroke();
-
-        // 3. Official Pass number label
-        doc.fontSize(9)
-           .font('Helvetica-Bold')
-           .fillColor('#c53030') // Bold red
-           .text(`OFFICIAL Visitor : ${pass.passNumber}`, 15, 59, { align: 'center', width: 320 });
-
-        // Draw line under pass number row
-        doc.moveTo(15, 79)
-           .lineTo(335, 79)
-           .strokeColor('#000000')
-           .lineWidth(1)
-           .stroke();
-
-        // 4. Construct Row Contents Array
+        // 1. Construct Row Contents Array first to determine page height dynamically
         const rows: { label: string; value: string; split?: { label: string; value: string } }[] = [];
 
         rows.push({
@@ -147,8 +101,81 @@ export class PdfService {
           }
         }
 
-        // 5. Draw rows dynamically
-        let currentY = 79;
+        // Calculate page height dynamically based on row count
+        // 15 (top margin) + 28 (header) + 72 (barcode box) + (rows.length * 20) + 15 (space to QR) + 100 (QR box) + 15 (border bottom space) + 10 (space to footer) + 10 (footer text) + 15 (bottom margin)
+        // Total = 280 + (rows.length * 20)
+        const pageHeight = 280 + (rows.length * 20);
+
+        const doc = new PDFDocument({
+          size: [350, pageHeight],
+          margin: 15,
+        });
+
+        const chunks: Buffer[] = [];
+        doc.on('data', (chunk) => chunks.push(chunk));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
+        doc.on('error', (err) => {
+          logger.error('❌ PDF Generation stream error:', err);
+          reject(err);
+        });
+
+        // Calculate bottom of the enclosing ticket border
+        const borderBottom = pageHeight - 40;
+
+        // 1. Draw the primary enclosing ticket border
+        doc.rect(15, 15, 320, borderBottom - 15)
+           .strokeColor('#000000')
+           .lineWidth(1.5)
+           .stroke();
+
+        // 2. Header Box
+        const headerTitle = pass.passType === 'VEHICLE' ? 'SGSITS Vehicle Entry Pass' : pass.passType === 'HOSTEL_GUEST' ? 'SGSITS Hostel Guest Pass' : 'SGSITS Entry/Exit Pass';
+        doc.fontSize(10)
+           .font('Helvetica-Bold')
+           .fillColor('#002147')
+           .text(headerTitle, 15, 23, { align: 'center', width: 320 });
+
+        // Draw line under header row
+        doc.moveTo(15, 43)
+           .lineTo(335, 43)
+           .strokeColor('#000000')
+           .lineWidth(1.5)
+           .stroke();
+
+        // 3. Barcode Box (Y = 43 to Y = 115)
+        const passLabel = pass.passType === 'VEHICLE' ? 'OFFICIAL Vehicle Pass' : 'OFFICIAL Visitor';
+        
+        // Draw mock barcode
+        const barcodeXStart = (350 - 155) / 2; // Center 155-point wide barcode
+        const barcodeYStart = 53;
+        const barcodeHeight = 35;
+        const barcodePattern = [
+          2, 1, 3, 1, 1, 2, 4, 1, 2, 3, 1, 2, 1, 1, 3, 2, 1, 4, 1, 2, 1, 3, 1, 2,
+          2, 1, 3, 1, 1, 2, 4, 1, 2, 3, 1, 2, 1, 1, 3, 2, 1, 4, 1, 2, 1, 3, 1, 2
+        ];
+        
+        let currentBarX = barcodeXStart;
+        doc.fillColor('#000000');
+        barcodePattern.forEach((width, idx) => {
+          doc.rect(currentBarX, barcodeYStart, width, barcodeHeight).fill();
+          currentBarX += width + (idx % 3 === 0 ? 2 : 1);
+        });
+
+        // Official Pass number label
+        doc.fontSize(9)
+           .font('Helvetica-Bold')
+           .fillColor('#c53030') // Bold red
+           .text(`${passLabel} : ${pass.passNumber}`, 15, 96, { align: 'center', width: 320 });
+
+        // Draw line under barcode box
+        doc.moveTo(15, 115)
+           .lineTo(335, 115)
+           .strokeColor('#000000')
+           .lineWidth(1)
+           .stroke();
+
+        // 4. Draw rows dynamically
+        let currentY = 115;
         const rowHeight = 20;
 
         for (const row of rows) {
@@ -191,9 +218,9 @@ export class PdfService {
              .stroke();
         }
 
-        // 6. Draw QR Code centered inside a border box
+        // 5. Draw QR Code centered inside a border box
         const qrBoxSize = 100;
-        const qrBoxX = (doc.page.width - qrBoxSize) / 2;
+        const qrBoxX = (350 - qrBoxSize) / 2;
         const qrBoxY = currentY + 15;
 
         // Draw QR box border
@@ -208,8 +235,8 @@ export class PdfService {
           height: qrBoxSize - 4
         });
 
-        // 7. Footer Text (Red)
-        const footerY = qrBoxY + qrBoxSize + 15;
+        // 6. Footer Text (Red, placed outside the border at the bottom)
+        const footerY = borderBottom + 10;
         doc.fontSize(8)
            .font('Helvetica-Bold')
            .fillColor('#e53e3e')
@@ -226,3 +253,4 @@ export class PdfService {
 }
 
 export default PdfService;
+
