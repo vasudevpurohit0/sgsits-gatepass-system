@@ -16,7 +16,13 @@ import {
   PlusCircle, 
   UserCheck, 
   ArrowRight,
-  Loader2
+  Loader2,
+  Bell,
+  FileText,
+  CheckSquare,
+  Unlock,
+  LogOut,
+  Share2
 } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
@@ -290,63 +296,6 @@ export const DashboardPage: React.FC = () => {
         </nav>
       </div>
 
-      {/* Hero Command Center Section - Redesigned as Live Campus Security Map HUD */}
-      <section className="command-center" style={{ margin: 0 }}>
-        <div className="map-hud-sidebar">
-          <div>
-            <h3 style={{ margin: '0 0 0.25rem 0', color: '#ffffff', fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.01em' }}>Campus Control HUD</h3>
-            <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.75rem' }}>Live operations telemetry & gate control</p>
-          </div>
-          
-          {/* Officer Info */}
-          <div style={{ padding: '0.75rem', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Active Officer</div>
-            <div style={{ color: '#ffffff', fontWeight: 600, fontSize: '0.9rem', marginTop: '2px' }}>{user?.firstName} {user?.lastName}</div>
-            <div style={{ color: '#60a5fa', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600, marginTop: '2px' }}>{formatRole(user?.role || '')}</div>
-          </div>
-
-          {/* Gate Telemetry Status */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600, marginBottom: '2px' }}>Gate Operations</div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-              <span style={{ color: '#cbd5e1', fontWeight: 500 }}>Gate 1 (Main Gate)</span>
-              <span style={{ color: '#10b981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 6px #10b981' }}></span> ONLINE
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-              <span style={{ color: '#cbd5e1', fontWeight: 500 }}>Gate 2 (Hostel Gate)</span>
-              <span style={{ color: '#10b981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 6px #10b981' }}></span> ONLINE
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0' }}>
-              <span style={{ color: '#cbd5e1', fontWeight: 500 }}>Gate 3 (Rear Gate)</span>
-              <span style={{ color: '#10b981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 6px #10b981' }}></span> ONLINE
-              </span>
-            </div>
-          </div>
-
-          {/* System Sync */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: 'auto', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '0.75rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
-              <span style={{ color: '#94a3b8' }}>Database Sync</span>
-              <span style={{ color: '#10b981', fontWeight: 600 }}>SYNCED</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
-              <span style={{ color: '#94a3b8' }}>Email Dispatch</span>
-              <span style={{ color: '#10b981', fontWeight: 600 }}>READY</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Map Container */}
-        <div className="map-hud-container">
-          <div id="campus-leaflet-map"></div>
-        </div>
-      </section>
-
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6rem 0', color: 'var(--text-muted)' }}>
           <Loader2 size={32} className="animate-spin" style={{ color: 'var(--primary)' }} />
@@ -354,6 +303,63 @@ export const DashboardPage: React.FC = () => {
         </div>
       ) : activeTab === 'overview' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          
+          {/* Hero Command Center Section - Redesigned as Live Campus Security Map HUD */}
+          <section className="command-center" style={{ margin: 0 }}>
+            <div className="map-hud-sidebar">
+              <div>
+                <h3 style={{ margin: '0 0 0.25rem 0', color: '#ffffff', fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.01em' }}>Campus Control HUD</h3>
+                <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.75rem' }}>Live operations telemetry & gate control</p>
+              </div>
+              
+              {/* Officer Info */}
+              <div style={{ padding: '0.75rem', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Active Officer</div>
+                <div style={{ color: '#ffffff', fontWeight: 600, fontSize: '0.9rem', marginTop: '2px' }}>{user?.firstName} {user?.lastName}</div>
+                <div style={{ color: '#60a5fa', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600, marginTop: '2px' }}>{formatRole(user?.role || '')}</div>
+              </div>
+
+              {/* Gate Telemetry Status */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600, marginBottom: '2px' }}>Gate Operations</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <span style={{ color: '#cbd5e1', fontWeight: 500 }}>Gate 1 (Main Gate)</span>
+                  <span style={{ color: '#10b981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 6px #10b981' }}></span> ONLINE
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <span style={{ color: '#cbd5e1', fontWeight: 500 }}>Gate 2 (Hostel Gate)</span>
+                  <span style={{ color: '#10b981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 6px #10b981' }}></span> ONLINE
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0' }}>
+                  <span style={{ color: '#cbd5e1', fontWeight: 500 }}>Gate 3 (Rear Gate)</span>
+                  <span style={{ color: '#10b981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 6px #10b981' }}></span> ONLINE
+                  </span>
+                </div>
+              </div>
+
+              {/* System Sync */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: 'auto', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                  <span style={{ color: '#94a3b8' }}>Database Sync</span>
+                  <span style={{ color: '#10b981', fontWeight: 600 }}>SYNCED</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                  <span style={{ color: '#94a3b8' }}>Email Dispatch</span>
+                  <span style={{ color: '#10b981', fontWeight: 600 }}>READY</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Map Container */}
+            <div className="map-hud-container">
+              <div id="campus-leaflet-map"></div>
+            </div>
+          </section>
           
           {/* Enterprise Metrics Grid */}
           <div className="stats-grid" style={{ margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
@@ -536,94 +542,154 @@ export const DashboardPage: React.FC = () => {
               
               {/* Student/Faculty Flow */}
               <div className="workflow-card">
-                <div className="workflow-card-header">
+                <div className="workflow-card-header" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                   <Ticket size={16} style={{ color: '#0056b3' }} /> Student & Faculty Pass Generation Flow
                 </div>
                 <div className="workflow-flow">
                   <div className="workflow-step">
-                    <span className="step-num">1</span>
+                    <div className="workflow-step-top">
+                      <span className="step-num">1</span>
+                      <div className="step-icon-wrapper success">
+                        <PlusCircle size={15} />
+                      </div>
+                    </div>
                     <span className="step-label">Request Pass</span>
                     <span className="step-desc">Access passes portal & select create pass</span>
                   </div>
                   <span className="flow-connector"><ArrowRight size={16} /></span>
                   <div className="workflow-step">
-                    <span className="step-num">2</span>
+                    <div className="workflow-step-top">
+                      <span className="step-num">2</span>
+                      <div className="step-icon-wrapper info">
+                        <ClipboardList size={15} />
+                      </div>
+                    </div>
                     <span className="step-label">Submit Details</span>
                     <span className="step-desc">Enter visitor data, upload official photo ID</span>
                   </div>
                   <span className="flow-connector"><ArrowRight size={16} /></span>
                   <div className="workflow-step">
-                    <span className="step-num">3</span>
+                    <div className="workflow-step-top">
+                      <span className="step-num">3</span>
+                      <div className="step-icon-wrapper alert">
+                        <UserCheck size={15} />
+                      </div>
+                    </div>
                     <span className="step-label">Await Review</span>
                     <span className="step-desc">Hostel warden/admin notified for review</span>
                   </div>
                   <span className="flow-connector"><ArrowRight size={16} /></span>
                   <div className="workflow-step">
-                    <span className="step-num">4</span>
+                    <div className="workflow-step-top">
+                      <span className="step-num">4</span>
+                      <div className="step-icon-wrapper primary">
+                        <Share2 size={15} />
+                      </div>
+                    </div>
                     <span className="step-label">Share Pass</span>
-                    <span className="step-desc">Approved pass with secure QR dispatched to visitor</span>
+                    <span className="step-desc">Approved pass dispatch to visitor</span>
                   </div>
                 </div>
               </div>
 
               {/* Warden Flow */}
               <div className="workflow-card">
-                <div className="workflow-card-header">
+                <div className="workflow-card-header" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                   <UserCheck size={16} style={{ color: '#d97706' }} /> Hostel Warden Clearance Flow
                 </div>
                 <div className="workflow-flow">
                   <div className="workflow-step">
-                    <span className="step-num">1</span>
+                    <div className="workflow-step-top">
+                      <span className="step-num">1</span>
+                      <div className="step-icon-wrapper alert">
+                        <Bell size={15} />
+                      </div>
+                    </div>
                     <span className="step-label">Receive Alert</span>
                     <span className="step-desc">Pending pass request flags Warden queue</span>
                   </div>
                   <span className="flow-connector"><ArrowRight size={16} /></span>
                   <div className="workflow-step">
-                    <span className="step-num">2</span>
+                    <div className="workflow-step-top">
+                      <span className="step-num">2</span>
+                      <div className="step-icon-wrapper info">
+                        <FileText size={15} />
+                      </div>
+                    </div>
                     <span className="step-label">Verify Identity</span>
-                    <span className="step-desc">Inspect credentials, check purpose of visit</span>
+                    <span className="step-desc">Inspect credentials & check purpose of visit</span>
                   </div>
                   <span className="flow-connector"><ArrowRight size={16} /></span>
                   <div className="workflow-step">
-                    <span className="step-num">3</span>
+                    <div className="workflow-step-top">
+                      <span className="step-num">3</span>
+                      <div className="step-icon-wrapper success">
+                        <CheckSquare size={15} />
+                      </div>
+                    </div>
                     <span className="step-label">Decide Pass</span>
                     <span className="step-desc">Approve or Reject with official remarks</span>
                   </div>
                   <span className="flow-connector"><ArrowRight size={16} /></span>
                   <div className="workflow-step">
-                    <span className="step-num">4</span>
+                    <div className="workflow-step-top">
+                      <span className="step-num">4</span>
+                      <div className="step-icon-wrapper primary">
+                        <Database size={15} />
+                      </div>
+                    </div>
                     <span className="step-label">Audit Log</span>
-                    <span className="step-desc">Decision auto-synced into security database</span>
+                    <span className="step-desc">Decision synced into security database</span>
                   </div>
                 </div>
               </div>
 
               {/* Security guard scan flow */}
               <div className="workflow-card">
-                <div className="workflow-card-header">
+                <div className="workflow-card-header" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                   <Scan size={16} style={{ color: '#059669' }} /> Gate Officer Verification Flow
                 </div>
                 <div className="workflow-flow">
                   <div className="workflow-step">
-                    <span className="step-num">1</span>
+                    <div className="workflow-step-top">
+                      <span className="step-num">1</span>
+                      <div className="step-icon-wrapper primary">
+                        <Scan size={15} />
+                      </div>
+                    </div>
                     <span className="step-label">Scan Pass QR</span>
-                    <span className="step-desc">Scan visitor ticket QR via Gate Terminal camera</span>
+                    <span className="step-desc">Scan visitor ticket QR via Gate camera</span>
                   </div>
                   <span className="flow-connector"><ArrowRight size={16} /></span>
                   <div className="workflow-step">
-                    <span className="step-num">2</span>
+                    <div className="workflow-step-top">
+                      <span className="step-num">2</span>
+                      <div className="step-icon-wrapper info">
+                        <UserCheck size={15} />
+                      </div>
+                    </div>
                     <span className="step-label">Check Photo ID</span>
-                    <span className="step-desc">Match face with live system picture and ID doc</span>
+                    <span className="step-desc">Match face with live system picture and ID</span>
                   </div>
                   <span className="flow-connector"><ArrowRight size={16} /></span>
                   <div className="workflow-step">
-                    <span className="step-num">3</span>
+                    <div className="workflow-step-top">
+                      <span className="step-num">3</span>
+                      <div className="step-icon-wrapper success">
+                        <Unlock size={15} />
+                      </div>
+                    </div>
                     <span className="step-label">Authorize Entry</span>
-                    <span className="step-desc">Confirm check-in; timestamp entry registered</span>
+                    <span className="step-desc">Confirm check-in; register entry timestamp</span>
                   </div>
                   <span className="flow-connector"><ArrowRight size={16} /></span>
                   <div className="workflow-step">
-                    <span className="step-num">4</span>
+                    <div className="workflow-step-top">
+                      <span className="step-num">4</span>
+                      <div className="step-icon-wrapper alert">
+                        <LogOut size={15} />
+                      </div>
+                    </div>
                     <span className="step-label">Register Exit</span>
                     <span className="step-desc">Scan pass on exit to log dwell duration</span>
                   </div>
