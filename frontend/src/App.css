@@ -2030,6 +2030,74 @@ select.form-input-standard:focus {
   background: #004494 !important;
 }
 
+/* ==========================================================================
+   Responsive & Device Optimization (Mobile, Tablet, and Desktop Adaptive)
+   ========================================================================== */
 
+@media (max-width: 1024px) {
+  .grid-terminal-layout {
+    grid-template-columns: 1fr !important; /* Stack columns on tablets & smaller */
+    gap: 1.5rem !important;
+  }
+}
 
+@media (max-width: 850px) {
+  .command-center {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+  
+  .map-hud-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    min-height: 220px !important;
+    overflow-y: visible !important;
+  }
+  
+  .map-hud-container {
+    width: 100% !important;
+    height: 300px !important;
+  }
 
+  .workflow-flow {
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+
+  .workflow-step {
+    width: 100% !important;
+  }
+
+  .flow-connector {
+    transform: rotate(90deg) !important; /* Point arrows down when stacked */
+    margin: 0.5rem 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr !important; /* Single column stats on extra small devices */
+    gap: 1rem !important;
+  }
+
+  .enterprise-metric-card {
+    padding: 1.25rem !important;
+  }
+
+  .metric-number {
+    font-size: 1.75rem !important;
+  }
+
+  .map-hud-container {
+    height: 220px !important;
+  }
+  
+  .workflow-card {
+    padding: 1rem !important;
+  }
+  
+  .workflow-step {
+    padding: 1rem !important;
+  }
+}
