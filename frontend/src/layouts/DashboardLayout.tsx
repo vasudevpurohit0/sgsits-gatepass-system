@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { usePermissions } from '../hooks/usePermissions';
@@ -9,7 +9,8 @@ import {
   Scan, 
   ClipboardList, 
   LogOut,
-  Menu 
+  Menu,
+  Clock
 } from 'lucide-react';
 
 export const DashboardLayout: React.FC = () => {
@@ -18,39 +19,51 @@ export const DashboardLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const navigationItems = [
     {
       name: 'Overview',
       path: '/dashboard',
-      icon: <LayoutDashboard size={20} />,
+      icon: <LayoutDashboard size={18} />,
       show: true,
     },
     {
       name: 'Gate Passes',
       path: '/passes',
-      icon: <Ticket size={20} />,
+      icon: <Ticket size={18} />,
       show: can('create_pass') || can('approve_pass') || can('scan_qr'),
     },
     {
       name: 'Visitors Directory',
       path: '/visitors',
-      icon: <Users size={20} />,
+      icon: <Users size={18} />,
       show: ['SECURITY_ADMIN', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN', 'SECURITY_GUARD'].includes(user?.role || ''),
     },
     {
       name: 'Gate Terminal',
       path: '/terminal',
-      icon: <Scan size={20} />,
+      icon: <Scan size={18} />,
       show: can('scan_qr'),
     },
     {
       name: 'System Logs',
       path: '/audit',
-      icon: <ClipboardList size={20} />,
+      icon: <ClipboardList size={18} />,
       show: ['SECURITY_ADMIN', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN'].includes(user?.role || ''),
     },
   ];
+
+  const formatRole = (role: string) => {
+    return role ? role.replace(/_/g, ' ') : '';
+  };
 
   return (
     <div className="dashboard-layout" style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-base)', color: 'var(--text-main)' }}>
@@ -83,7 +96,8 @@ export const DashboardLayout: React.FC = () => {
         transition: 'all 0.3s ease',
         color: '#ffffff',
       }}>
-        <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2.5rem' }}>
+        {/* Subtle Institutional Identity Header */}
+        <div className="sidebar-identity" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <img 
             src="/SGSITS_LOGO.png" 
             alt="SGSITS Logo" 
@@ -99,12 +113,13 @@ export const DashboardLayout: React.FC = () => {
             }} 
           />
           <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '0.05em' }}>SGSITS</h2>
-            <span style={{ fontSize: '0.725rem', color: '#cbd5e1', display: 'block', fontWeight: 500, lineHeight: '1.2', marginTop: '2px' }}>Visitor Entry-Exit System</span>
+            <h3 className="sidebar-identity-title">SGSITS</h3>
+            <span className="sidebar-identity-subtitle">Visitor Entry-Exit</span>
+            <span className="sidebar-identity-tagline">Security Operations Platform</span>
           </div>
         </div>
 
-        <nav className="sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flexGrow: 1 }}>
+        <nav className="sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flexGrow: 1 }}>
           {navigationItems.filter(item => item.show).map((item) => {
             const isActive = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
             return (
@@ -118,21 +133,24 @@ export const DashboardLayout: React.FC = () => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '1rem',
-                  padding: '0.85rem 1.25rem',
+                  gap: '0.85rem',
+                  padding: '0.75rem 1rem',
                   border: 'none',
-                  borderRadius: '8px',
-                  background: isActive ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
+                  borderLeft: isActive ? '3px solid #3b82f6' : '3px solid transparent',
+                  borderRadius: isActive ? '0 6px 6px 0' : '6px',
+                  background: isActive ? 'rgba(255, 255, 255, 0.07)' : 'transparent',
                   color: isActive ? '#ffffff' : '#cbd5e1',
-                  fontSize: '0.9375rem',
+                  fontSize: '0.875rem',
                   fontWeight: 600,
                   cursor: 'pointer',
                   textAlign: 'left',
-                  transition: 'all 0.2s ease',
+                  transition: 'all 0.15s ease',
+                  marginLeft: isActive ? '-1.5rem' : '0',
+                  paddingLeft: isActive ? '2.25rem' : '1rem',
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
                     e.currentTarget.style.color = '#ffffff';
                   }
                 }}
@@ -150,48 +168,60 @@ export const DashboardLayout: React.FC = () => {
           })}
         </nav>
 
-        <div className="sidebar-footer" style={{ borderTop: '1px solid #003366', paddingTop: '1.5rem', marginTop: 'auto' }}>
+        <div className="sidebar-footer" style={{ borderTop: '1px solid #1e293b', paddingTop: '1.25rem', marginTop: 'auto' }}>
           <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
             <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              backgroundColor: '#3b82f6',
+              width: '36px',
+              height: '36px',
+              borderRadius: '6px',
+              backgroundColor: '#1e293b',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 700,
-              fontSize: '1rem',
-              color: '#ffffff',
+              fontSize: '0.875rem',
+              color: '#cbd5e1',
               flexShrink: 0,
             }}>
               {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
             </div>
             <div style={{ overflow: 'hidden' }}>
-              <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              <span style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#ffffff', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                 {user?.firstName} {user?.lastName}
               </span>
               <span style={{
-                fontSize: '0.7rem',
-                color: '#93c5fd',
+                fontSize: '0.65rem',
+                color: '#94a3b8',
                 textTransform: 'uppercase',
-                backgroundColor: 'rgba(59, 130, 246, 0.25)',
-                padding: '2px 8px',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                padding: '2px 6px',
                 borderRadius: '4px',
-                fontWeight: 'bold',
+                fontWeight: '700',
                 display: 'inline-block',
                 marginTop: '2px',
+                letterSpacing: '0.02em',
               }}>
-                {user?.role?.replace('_', ' ')}
+                {formatRole(user?.role || '')}
               </span>
             </div>
           </div>
           <button
             onClick={logoutUser}
             className="btn btn-secondary w-full"
-            style={{ borderColor: '#ef4444', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+            style={{ 
+              backgroundColor: 'rgba(239, 68, 68, 0.08)', 
+              borderColor: 'rgba(239, 68, 68, 0.2)', 
+              color: '#f87171', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: '0.5rem',
+              padding: '0.45rem 1rem',
+              fontSize: '0.8125rem'
+            }}
           >
-            <LogOut size={16} /> Sign Out
+            <LogOut size={14} /> Sign Out
           </button>
         </div>
       </aside>
@@ -200,7 +230,7 @@ export const DashboardLayout: React.FC = () => {
       <div className="dashboard-content-wrapper" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Top Header */}
         <header className="dashboard-header" style={{
-          height: '70px',
+          height: '64px',
           backgroundColor: 'var(--bg-surface)',
           borderBottom: '1px solid var(--border-color)',
           display: 'flex',
@@ -220,20 +250,31 @@ export const DashboardLayout: React.FC = () => {
               cursor: 'pointer',
             }}
           >
-            <Menu size={24} />
+            <Menu size={20} />
           </button>
           
           <div className="dashboard-header-title">
-            <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-h)' }}>
+            <h1 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-h)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
               {navigationItems.find(item => location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path)))?.name || 'Dashboard'}
             </h1>
           </div>
 
           <div className="dashboard-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            {/* Live Clock Display */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8125rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+              <Clock size={13} style={{ color: '#64748b' }} />
+              <span>
+                {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+              </span>
+              <span style={{ color: '#cbd5e1', margin: '0 0.25rem' }}>|</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--text-h)' }}>
+                {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
+              </span>
+            </div>
             {/* Connection Status Indicator */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-              <span className="dot pulse green" style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }}></span>
-              <span>Secure Connection</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
+              <span className="dot pulse green" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></span>
+              <span style={{ fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.02em', color: '#10b981' }}>System Hub</span>
             </div>
           </div>
         </header>

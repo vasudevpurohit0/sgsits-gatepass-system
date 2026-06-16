@@ -188,30 +188,32 @@ export const CreatePassPage: React.FC = () => {
   const gateOptions = ['Main Gate', 'Hostel Gate', 'Academic Block Gate', 'Research Park Gate'];
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Request Access Pass</h2>
-        <p style={{ margin: '0.25rem 0 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>
-          Create a digital entry credential. Ensure all details match the visitor's government-issued ID.
-        </p>
+    <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      
+      {/* Page Header */}
+      <div className="page-header-standard" style={{ marginBottom: '0.5rem' }}>
+        <div>
+          <h2 className="page-title-main">Request Security Access Pass</h2>
+          <p className="page-subtitle-main">Create a digital entry credential. Verify details against official credentials.</p>
+        </div>
       </div>
 
       {error && (
-        <div className="alert-message error" style={{ marginBottom: '1.5rem' }}>
-          <p>{error}</p>
+        <div style={{ color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.15)', padding: '0.85rem 1rem', borderRadius: '6px', fontSize: '0.875rem', fontWeight: 600 }}>
+          {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
         {/* Pass Configuration */}
-        <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '2rem' }}>
-          <h3 style={{ margin: '0 0 1.5rem 0' }}>1. Pass Configuration</h3>
+        <div className="card-standard">
+          <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1rem', fontWeight: 700, color: 'var(--text-h)', textTransform: 'uppercase', letterSpacing: '0.02em', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>1. Pass Parameters</h3>
           
-          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.25rem', marginBottom: '1.25rem' }}>
             <div className="form-group">
-              <label>Pass Type</label>
-              <select value={passType} onChange={(e) => setPassType(e.target.value)} className="form-select">
+              <label className="form-label-standard">Access Type</label>
+              <select value={passType} onChange={(e) => setPassType(e.target.value)} className="form-input-standard" style={{ cursor: 'pointer' }}>
                 <option value="VISITOR">Standard Visitor Pass</option>
                 <option value="HOSTEL_GUEST">Hostel Overnight Guest</option>
                 <option value="VEHICLE">Vehicle Entry Pass</option>
@@ -221,207 +223,202 @@ export const CreatePassPage: React.FC = () => {
               </select>
             </div>
 
-            <div className="form-group" style={{ justifyContent: 'center' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', height: '100%', cursor: 'pointer', marginTop: '1.5rem' }}>
+            <div className="form-group" style={{ display: 'flex', alignItems: 'center' }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginTop: '1.25rem' }}>
                 <input 
                   type="checkbox" 
                   checked={isMultiEntry} 
                   onChange={(e) => setIsMultiEntry(e.target.checked)} 
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                 />
-                <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Allow Multi-Entry (Sliding window)</span>
+                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)' }}>Enable Multi-Entry Credentials</span>
               </label>
             </div>
           </div>
 
-          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.25rem', marginBottom: '1.25rem' }}>
             <div className="form-group">
-              <label>Valid From</label>
-              <input type="datetime-local" value={validFrom} onChange={(e) => setValidFrom(e.target.value)} required />
+              <label className="form-label-standard">Valid From</label>
+              <input type="datetime-local" value={validFrom} onChange={(e) => setValidFrom(e.target.value)} className="form-input-standard" required />
             </div>
             <div className="form-group">
-              <label>Valid To</label>
-              <input type="datetime-local" value={validTo} onChange={(e) => setValidTo(e.target.value)} required />
+              <label className="form-label-standard">Valid To</label>
+              <input type="datetime-local" value={validTo} onChange={(e) => setValidTo(e.target.value)} className="form-input-standard" required />
             </div>
           </div>
 
-          <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-            <label>Allowed Gates</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '0.25rem' }}>
+          <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+            <label className="form-label-standard">Authorized Entrance Gates</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.25rem' }}>
               {gateOptions.map(gate => (
-                <label key={gate} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', backgroundColor: '#ffffff', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                <label key={gate} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', backgroundColor: 'var(--bg-base)', padding: '0.45rem 0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '0.8125rem', fontWeight: 600 }}>
                   <input 
                     type="checkbox" 
                     checked={allowedGates.includes(gate)} 
                     onChange={() => handleGateChange(gate)} 
                   />
-                  <span style={{ fontSize: '0.875rem' }}>{gate}</span>
+                  <span>{gate}</span>
                 </label>
               ))}
             </div>
           </div>
 
-          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.25rem', marginBottom: '1.25rem' }}>
             <div className="form-group">
-              <label>Pass Created by</label>
-              <input type="text" value={createdByName} onChange={(e) => setCreatedByName(e.target.value)} placeholder="Full name of pass creator" required />
+              <label className="form-label-standard">Clearance Request Sponsor (Name)</label>
+              <input type="text" value={createdByName} onChange={(e) => setCreatedByName(e.target.value)} className="form-input-standard" placeholder="Sponsoring officer or student" required />
             </div>
             <div className="form-group">
-              <label>Pass creator Dept/Section</label>
-              <input type="text" value={creatorDept} onChange={(e) => setCreatorDept(e.target.value)} placeholder="E.g., CSE Dept, Registrar Office" required />
+              <label className="form-label-standard">Sponsor Department / Section</label>
+              <input type="text" value={creatorDept} onChange={(e) => setCreatorDept(e.target.value)} className="form-input-standard" placeholder="E.g., CSE Dept, Registrar Office" required />
             </div>
           </div>
 
-          <div className="form-group">
-            <label>Purpose of Visit</label>
+          <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+            <label className="form-label-standard">Purpose of Visit</label>
             <textarea 
               rows={3} 
               value={purpose} 
               onChange={(e) => setPurpose(e.target.value)} 
-              placeholder="E.g., Research discussion, hostel guest, project review..."
+              placeholder="Provide clean justification (e.g., academic consultation, lab inspection...)"
               required
-              style={{
-                backgroundColor: '#ffffff',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-main)',
-                padding: '0.75rem',
-                borderRadius: '8px',
-                fontFamily: 'inherit',
-                fontSize: '0.875rem',
-              }}
+              className="form-input-standard"
+              style={{ fontFamily: 'inherit', resize: 'vertical' }}
             />
           </div>
 
-          <div className="form-group" style={{ marginTop: '1.25rem' }}>
-            <label>Additional Notes (Optional)</label>
+          <div className="form-group">
+            <label className="form-label-standard">Remarks / Additional Info (Optional)</label>
             <input 
               type="text" 
               value={notes} 
               onChange={(e) => setNotes(e.target.value)} 
-              placeholder="E.g., Carrying laptop, visitor parking needed..." 
+              className="form-input-standard"
+              placeholder="E.g., Carrying laboratory samples, special access permissions..." 
             />
           </div>
         </div>
 
         {/* Visitor Details */}
-        <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '2rem' }}>
-          <h3 style={{ margin: '0 0 1.5rem 0' }}>2. Visitor Information</h3>
+        <div className="card-standard">
+          <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1rem', fontWeight: 700, color: 'var(--text-h)', textTransform: 'uppercase', letterSpacing: '0.02em', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>2. Visitor Specifications</h3>
 
-          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.25rem', marginBottom: '1.25rem' }}>
             <div className="form-group">
-              <label>Full Name</label>
-              <input type="text" value={visitorName} onChange={(e) => setVisitorName(e.target.value)} placeholder="Visitor name" required />
+              <label className="form-label-standard">Visitor Name</label>
+              <input type="text" value={visitorName} onChange={(e) => setVisitorName(e.target.value)} className="form-input-standard" placeholder="Enter full name" required />
             </div>
             <div className="form-group">
-              <label>Mobile Number</label>
-              <input type="tel" value={visitorPhone} onChange={(e) => setVisitorPhone(e.target.value)} placeholder="10-digit number" required />
+              <label className="form-label-standard">Contact Phone</label>
+              <input type="tel" value={visitorPhone} onChange={(e) => setVisitorPhone(e.target.value)} className="form-input-standard" placeholder="10-digit mobile number" required />
             </div>
           </div>
 
-          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.25rem', marginBottom: '1.25rem' }}>
             <div className="form-group">
-              <label>Email Address (Optional)</label>
-              <input type="email" value={visitorEmail} onChange={(e) => setVisitorEmail(e.target.value)} placeholder="visitor@email.com" />
+              <label className="form-label-standard">Email Address (Optional)</label>
+              <input type="email" value={visitorEmail} onChange={(e) => setVisitorEmail(e.target.value)} className="form-input-standard" placeholder="visitor@domain.com" />
             </div>
             <div className="form-group">
-              <label>Visitor Category</label>
-              <select value={visitorCategory} onChange={(e) => setVisitorCategory(e.target.value)} className="form-select">
-                <option value="GENERAL">Regular Visitor</option>
-                <option value="VIP">VIP (Auto-approves pass)</option>
-                <option value="CONTRACTOR">Contractor</option>
+              <label className="form-label-standard">Visitor Designation Category</label>
+              <select value={visitorCategory} onChange={(e) => setVisitorCategory(e.target.value)} className="form-input-standard" style={{ cursor: 'pointer' }}>
+                <option value="GENERAL">General Visitor</option>
+                <option value="VIP">VIP (Auto-authorized pass)</option>
+                <option value="CONTRACTOR">Maintenance Contractor</option>
               </select>
             </div>
           </div>
 
-          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
-            <div className="form-group">
-              <label>Coming From (Organization / City / Place)</label>
-              <input type="text" value={comingFrom} onChange={(e) => setComingFrom(e.target.value)} placeholder="E.g. IIT Delhi, Mumbai, Google" required />
+          <div className="grid-2-col" style={{ gap: '1.25rem', marginBottom: '1.25rem' }}>
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label className="form-label-standard">Origin Institution / Organization / City</label>
+              <input type="text" value={comingFrom} onChange={(e) => setComingFrom(e.target.value)} className="form-input-standard" placeholder="E.g. IIT Indore, Delhi, TCS" required />
             </div>
           </div>
 
-          <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className="grid-2-col" style={{ gap: '1.25rem', marginBottom: '1.25rem' }}>
             <div className="form-group">
-              <label>ID Document Type</label>
-              <select value={visitorIdType} onChange={(e) => setVisitorIdType(e.target.value)} className="form-select">
+              <label className="form-label-standard">ID Document Type</label>
+              <select value={visitorIdType} onChange={(e) => setVisitorIdType(e.target.value)} className="form-input-standard" style={{ cursor: 'pointer' }}>
                 <option value="AADHAAR">Aadhaar Card</option>
                 <option value="PAN_CARD">PAN Card</option>
                 <option value="DRIVING_LICENSE">Driving License</option>
                 <option value="PASSPORT">Passport</option>
-                <option value="OTHER">Student ID Card / Other</option>
+                <option value="OTHER">Other Official ID</option>
               </select>
             </div>
             <div className="form-group">
-              <label>ID Document Number</label>
-              <input type="text" value={visitorIdNumber} onChange={(e) => setVisitorIdNumber(e.target.value)} placeholder="Enter unique ID number" required />
+              <label className="form-label-standard">ID Number</label>
+              <input type="text" value={visitorIdNumber} onChange={(e) => setVisitorIdNumber(e.target.value)} className="form-input-standard" placeholder="Enter ID document reference number" required />
             </div>
           </div>
 
           <div className="form-group">
-            <label>Upload ID Photo / Selfie</label>
+            <label className="form-label-standard">Identity Validation Attachment (Selfie / ID Image)</label>
             <input 
               type="file" 
               accept="image/*" 
               onChange={handleFileChange} 
+              className="form-input-standard"
               style={{
-                backgroundColor: '#ffffff',
-                border: '1px dashed var(--border-color)',
-                padding: '1rem',
-                borderRadius: '8px',
-                cursor: 'pointer',
+                borderStyle: 'dashed',
+                borderWidth: '2px',
+                padding: '1.5rem',
+                textAlign: 'center',
+                backgroundColor: 'var(--bg-base)'
               }}
             />
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-              Upload a clear photo of the visitor's face or ID document (Max 5MB, JPEG/PNG).
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.35rem' }}>
+              Attach a digital copy of the visitor selfie or identification card (JPEG/PNG format, Max 5MB).
             </span>
           </div>
         </div>
 
         {/* Conditional Vehicle Form */}
         {passType === 'VEHICLE' && (
-          <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 1.5rem 0', color: '#3b82f6' }}>3. Vehicle Specifications</h3>
+          <div className="card-standard" style={{ borderColor: 'rgba(59, 130, 246, 0.3)' }}>
+            <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.02em', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>3. Vehicle Specifications</h3>
             
-            <div className="grid-2-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="grid-2-col" style={{ gap: '1.25rem', marginBottom: '1.25rem' }}>
               <div className="form-group">
-                <label>Number Plate</label>
-                <input type="text" value={numberPlate} onChange={(e) => setNumberPlate(e.target.value)} placeholder="E.g., KA-01-MX-1234" required />
+                <label className="form-label-standard">Number Plate</label>
+                <input type="text" value={numberPlate} onChange={(e) => setNumberPlate(e.target.value)} className="form-input-standard" placeholder="E.g., MP-09-AB-1234" required />
               </div>
               <div className="form-group">
-                <label>Vehicle Type</label>
-                <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} className="form-select">
+                <label className="form-label-standard">Vehicle Classification</label>
+                <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} className="form-input-standard" style={{ cursor: 'pointer' }}>
                   <option value="TWO_WHEELER">Two Wheeler</option>
                   <option value="FOUR_WHEELER">Four Wheeler</option>
-                  <option value="TRUCK">Truck / Commercial</option>
-                  <option value="BUS">Bus</option>
-                  <option value="OTHER">Other</option>
+                  <option value="TRUCK">Heavy Utility / Truck</option>
+                  <option value="BUS">Staff Bus</option>
+                  <option value="OTHER">Other Classification</option>
                 </select>
               </div>
             </div>
 
-            <div className="grid-3-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="grid-3-col" style={{ gap: '1.25rem', marginBottom: '1.25rem' }}>
               <div className="form-group">
-                <label>Make</label>
-                <input type="text" value={make} onChange={(e) => setMake(e.target.value)} placeholder="E.g., Honda" />
+                <label className="form-label-standard">Make</label>
+                <input type="text" value={make} onChange={(e) => setMake(e.target.value)} className="form-input-standard" placeholder="E.g., Maruti Suzuki" />
               </div>
               <div className="form-group">
-                <label>Model</label>
-                <input type="text" value={model} onChange={(e) => setModel(e.target.value)} placeholder="E.g., Activa / City" />
+                <label className="form-label-standard">Model</label>
+                <input type="text" value={model} onChange={(e) => setModel(e.target.value)} className="form-input-standard" placeholder="E.g., Swift" />
               </div>
               <div className="form-group">
-                <label>Color</label>
-                <input type="text" value={color} onChange={(e) => setColor(e.target.value)} placeholder="Black" />
+                <label className="form-label-standard">Color</label>
+                <input type="text" value={color} onChange={(e) => setColor(e.target.value)} className="form-input-standard" placeholder="E.g., White" />
               </div>
             </div>
 
-            <div className="grid-2-col" style={{ gap: '1.5rem' }}>
+            <div className="grid-2-col" style={{ gap: '1.25rem' }}>
               <div className="form-group">
-                <label>Driver Name (If not visitor)</label>
-                <input type="text" value={driverName} onChange={(e) => setDriverName(e.target.value)} placeholder="Driver's name" />
+                <label className="form-label-standard">Driver Name (If different from Visitor)</label>
+                <input type="text" value={driverName} onChange={(e) => setDriverName(e.target.value)} className="form-input-standard" placeholder="Driver full name" />
               </div>
               <div className="form-group">
-                <label>Driver Phone</label>
-                <input type="tel" value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} placeholder="Driver's number" />
+                <label className="form-label-standard">Driver Contact Phone</label>
+                <input type="tel" value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} className="form-input-standard" placeholder="Driver phone number" />
               </div>
             </div>
           </div>
@@ -429,27 +426,27 @@ export const CreatePassPage: React.FC = () => {
 
         {/* Conditional Hostel Form */}
         {passType === 'HOSTEL_GUEST' && (
-          <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 1.5rem 0', color: '#c084fc' }}>3. Hostel Verification</h3>
+          <div className="card-standard" style={{ borderColor: 'rgba(192, 132, 252, 0.3)' }}>
+            <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1rem', fontWeight: 700, color: '#c084fc', textTransform: 'uppercase', letterSpacing: '0.02em', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>3. Hostel Clearance</h3>
             
-            <div className="grid-3-col" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="grid-3-col" style={{ gap: '1.25rem', marginBottom: '1.25rem' }}>
               <div className="form-group">
-                <label>Hostel Block</label>
-                <input type="text" value={hostelBlock} onChange={(e) => setHostelBlock(e.target.value)} placeholder="E.g., Block B" required />
+                <label className="form-label-standard">Hostel Block Designation</label>
+                <input type="text" value={hostelBlock} onChange={(e) => setHostelBlock(e.target.value)} className="form-input-standard" placeholder="E.g., Hostel Block C" required />
               </div>
               <div className="form-group">
-                <label>Room Number</label>
-                <input type="text" value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} placeholder="Room number" required />
+                <label className="form-label-standard">Room Number</label>
+                <input type="text" value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} className="form-input-standard" placeholder="Room Number" required />
               </div>
               <div className="form-group">
-                <label>Nights of Stay</label>
-                <input type="number" min="1" value={plannedNights} onChange={(e) => setPlannedNights(e.target.value)} required />
+                <label className="form-label-standard">Nights of Stay</label>
+                <input type="number" min="1" value={plannedNights} onChange={(e) => setPlannedNights(e.target.value)} className="form-input-standard" required />
               </div>
             </div>
 
             <div className="form-group">
-              <label>Assigned Warden for Approval</label>
-              <select value={wardenId} onChange={(e) => setWardenId(e.target.value)} className="form-select">
+              <label className="form-label-standard">Select Assigned Review Warden</label>
+              <select value={wardenId} onChange={(e) => setWardenId(e.target.value)} className="form-input-standard" style={{ cursor: 'pointer' }}>
                 {wardens.map(warden => (
                   <option key={warden.id} value={warden.id}>
                     {warden.firstName ? `${warden.firstName} ${warden.lastName}` : warden.name}
@@ -461,12 +458,12 @@ export const CreatePassPage: React.FC = () => {
         )}
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-          <button type="button" onClick={() => navigate('/passes')} className="btn btn-secondary" style={{ padding: '0.75rem 2rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+          <button type="button" onClick={() => navigate('/passes')} className="btn btn-secondary" style={{ padding: '0.65rem 1.75rem' }}>
             Cancel
           </button>
-          <button type="submit" disabled={loading} className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>
-            {loading ? 'Submitting Request...' : 'Submit Pass Request'}
+          <button type="submit" disabled={loading} className="btn btn-primary" style={{ padding: '0.65rem 1.75rem' }}>
+            {loading ? 'Registering...' : 'Register Clearance Request'}
           </button>
         </div>
       </form>

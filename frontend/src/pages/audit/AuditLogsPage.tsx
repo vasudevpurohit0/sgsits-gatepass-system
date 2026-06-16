@@ -39,32 +39,26 @@ export const AuditLogsPage: React.FC = () => {
   const gateOptions = ['Main Gate', 'Hostel Gate', 'Academic Block Gate', 'Research Park Gate'];
 
   return (
-    <div className="audit-logs-container">
-      <div style={{ marginBottom: '2rem' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Security Audit & Entry Logs</h2>
-        <p style={{ margin: '0.25rem 0 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>
-          Historical record of all visitor and vehicle entry check-ins and check-outs across campus gates.
-        </p>
+    <div className="audit-logs-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      
+      {/* Page Header */}
+      <div className="page-header-standard">
+        <div>
+          <h2 className="page-title-main">Security Audit & Compliance Logs</h2>
+          <p className="page-subtitle-main">Historical record of all visitor and vehicle entry check-ins and check-outs across campus gates.</p>
+        </div>
       </div>
 
       {/* Filters */}
-      <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.25rem', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+      <div className="card-standard" style={{ padding: '1.25rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div style={{ width: '200px' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Gate location</label>
+            <label className="form-label-standard">Gate Location</label>
             <select
               value={gate}
               onChange={(e) => { setGate(e.target.value); setPage(1); }}
-              style={{
-                width: '100%',
-                backgroundColor: '#ffffff',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-main)',
-                padding: '0.6rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-              }}
+              className="form-input-standard"
+              style={{ cursor: 'pointer' }}
             >
               <option value="">All Gates</option>
               {gateOptions.map(g => (
@@ -74,20 +68,12 @@ export const AuditLogsPage: React.FC = () => {
           </div>
 
           <div style={{ width: '200px' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Log Direction</label>
+            <label className="form-label-standard">Log Direction</label>
             <select
               value={logType}
               onChange={(e) => { setLogType(e.target.value); setPage(1); }}
-              style={{
-                width: '100%',
-                backgroundColor: '#ffffff',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-main)',
-                padding: '0.6rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-              }}
+              className="form-input-standard"
+              style={{ cursor: 'pointer' }}
             >
               <option value="">All Directions</option>
               <option value="ENTRY">ENTRY (Check In)</option>
@@ -95,70 +81,64 @@ export const AuditLogsPage: React.FC = () => {
             </select>
           </div>
 
-          <button onClick={fetchLogs} className="btn btn-secondary" style={{ alignSelf: 'flex-end', padding: '0.6rem 1.5rem' }}>
+          <button onClick={fetchLogs} className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem' }}>
             Refresh Logs
           </button>
         </div>
       </div>
 
       {/* Logs Table */}
-      <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', overflowX: 'auto' }}>
+      <div className="card-standard" style={{ padding: 0, overflowX: 'auto' }}>
         {loading ? (
           <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-            <Loader2 size={32} className="animate-spin" style={{ color: 'var(--primary)' }} />
-            <p style={{ marginTop: '1rem' }}>Loading logs history...</p>
+            <Loader2 size={32} className="animate-spin" style={{ color: '#002147' }} />
+            <p style={{ marginTop: '1rem', fontSize: '0.875rem' }}>Loading logs history...</p>
           </div>
         ) : logs.length === 0 ? (
           <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-            <ClipboardList size={48} style={{ color: 'var(--text-muted)' }} />
-            <h3 style={{ marginTop: '1rem' }}>No Logs Found</h3>
-            <p style={{ marginTop: '0.5rem' }}>No entry or exit logs have been recorded matching the filters.</p>
+            <ClipboardList size={44} style={{ color: '#94a3b8' }} />
+            <h3 style={{ marginTop: '1rem', color: 'var(--text-h)', fontSize: '1rem' }}>No Logs Found</h3>
+            <p style={{ marginTop: '0.25rem', fontSize: '0.8125rem' }}>No entry or exit logs have been recorded matching the filters.</p>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9375rem' }}>
+          <table className="table-standard">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)' }}>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Log ID</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Gate / Location</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Direction</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Time Registered</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Override Status</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Dwell Time</th>
+              <tr>
+                <th>Log ID</th>
+                <th>Gate / Location</th>
+                <th>Direction</th>
+                <th>Time Registered</th>
+                <th>Verification Status</th>
+                <th>Dwell Time</th>
               </tr>
             </thead>
             <tbody>
               {logs.map((log) => (
-                <tr key={log.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <td style={{ padding: '1.25rem 1.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.8125rem' }}>{log.id.slice(-8)}...</td>
-                  <td style={{ padding: '1.25rem 1.5rem', fontWeight: 600 }}>{log.gate}</td>
-                  <td style={{ padding: '1.25rem 1.5rem' }}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '0.2rem 0.6rem',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                      backgroundColor: log.logType === 'ENTRY' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                      color: log.logType === 'ENTRY' ? '#10b981' : '#3b82f6',
-                    }}>
+                <tr key={log.id}>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', color: '#3b82f6', fontWeight: 600 }}>
+                    {log.id.slice(-8).toUpperCase()}
+                  </td>
+                  <td style={{ fontWeight: 700, color: 'var(--text-h)' }}>{log.gate}</td>
+                  <td>
+                    <span className={log.logType === 'ENTRY' ? 'status-pill-standard approved' : 'status-pill-standard pending'}>
                       {log.logType}
                     </span>
                   </td>
-                  <td style={{ padding: '1.25rem 1.5rem' }}>
+                  <td style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
                     {log.entryAt ? new Date(log.entryAt).toLocaleString() : log.exitAt ? new Date(log.exitAt).toLocaleString() : 'N/A'}
                   </td>
-                  <td style={{ padding: '1.25rem 1.5rem' }}>
+                  <td>
                     {log.isManualOverride ? (
-                      <span style={{ color: '#fbbf24', fontSize: '0.8125rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <AlertTriangle size={14} /> Manual Override ({log.overrideReason})
+                      <span style={{ color: '#d97706', fontSize: '0.8125rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600 }}>
+                        <AlertTriangle size={13} /> Manual Override
                       </span>
                     ) : (
-                      <span style={{ color: '#10b981', fontSize: '0.8125rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <ShieldCheck size={14} /> Encrypted Scan
+                      <span style={{ color: '#059669', fontSize: '0.8125rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600 }}>
+                        <ShieldCheck size={13} /> Encrypted Scan
                       </span>
                     )}
                   </td>
-                  <td style={{ padding: '1.25rem 1.5rem', fontWeight: 600 }}>
+                  <td style={{ fontWeight: 600, color: 'var(--text-h)', fontSize: '0.8125rem' }}>
                     {log.dwellMinutes !== null && log.dwellMinutes !== undefined ? `${log.dwellMinutes} mins` : '-'}
                   </td>
                 </tr>
@@ -169,17 +149,19 @@ export const AuditLogsPage: React.FC = () => {
       </div>
 
       {/* Pagination */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem' }}>
-        <button disabled={page === 1} onClick={() => setPage(page - 1)} className="btn btn-secondary" style={{ opacity: page === 1 ? 0.5 : 1 }}>
-          Previous
-        </button>
-        <span style={{ alignSelf: 'center', fontSize: '0.875rem', color: '#94a3b8' }}>
-          Page {page}
-        </span>
-        <button disabled={logs.length < limit} onClick={() => setPage(page + 1)} className="btn btn-secondary" style={{ opacity: logs.length < limit ? 0.5 : 1 }}>
-          Next
-        </button>
-      </div>
+      {logs.length >= limit && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+          <button disabled={page === 1} onClick={() => setPage(page - 1)} className="btn btn-secondary" style={{ opacity: page === 1 ? 0.5 : 1 }}>
+            Previous
+          </button>
+          <span style={{ alignSelf: 'center', fontSize: '0.8125rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+            Page {page}
+          </span>
+          <button disabled={logs.length < limit} onClick={() => setPage(page + 1)} className="btn btn-secondary" style={{ opacity: logs.length < limit ? 0.5 : 1 }}>
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

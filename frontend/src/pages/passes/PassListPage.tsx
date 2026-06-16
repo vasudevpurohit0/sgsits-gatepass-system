@@ -99,26 +99,35 @@ export const PassListPage: React.FC = () => {
     }
   };
 
-  const getStatusColor = (s: PassStatus) => {
+  const getStatusClass = (s: PassStatus) => {
     switch (s) {
-      case 'APPROVED': return { bg: 'rgba(16, 185, 129, 0.15)', text: '#10b981' };
-      case 'ACTIVE': return { bg: 'rgba(59, 130, 246, 0.15)', text: '#3b82f6' };
-      case 'PENDING_APPROVAL': return { bg: 'rgba(245, 158, 11, 0.15)', text: '#f59e0b' };
-      case 'REJECTED': return { bg: 'rgba(239, 68, 68, 0.15)', text: '#ef4444' };
-      case 'REVOKED': return { bg: 'rgba(239, 68, 68, 0.15)', text: '#f87171' };
-      case 'USED': return { bg: 'rgba(107, 114, 128, 0.15)', text: '#9ca3af' };
-      case 'EXPIRED': return { bg: 'rgba(107, 114, 128, 0.15)', text: '#6b7280' };
-      default: return { bg: 'rgba(255, 255, 255, 0.05)', text: '#f8fafc' };
+      case 'APPROVED':
+      case 'ACTIVE':
+        return 'status-pill-standard approved';
+      case 'PENDING_APPROVAL':
+        return 'status-pill-standard pending';
+      case 'REJECTED':
+      case 'REVOKED':
+        return 'status-pill-standard rejected';
+      case 'USED':
+      case 'EXPIRED':
+      default:
+        return 'status-pill-standard revoked';
     }
   };
 
+  const formatPassType = (type: string) => {
+    return type ? type.replace(/_/g, ' ') : '';
+  };
+
   return (
-    <div className="pass-list-container">
-      {/* Upper Action Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+    <div className="pass-list-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      
+      {/* Page Header */}
+      <div className="page-header-standard">
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Active Passes & Requests</h2>
-          <p style={{ margin: '0.25rem 0 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>Track, verify, and approve security gate access credentials.</p>
+          <h2 className="page-title-main">Active Passes & Clearance Requests</h2>
+          <p className="page-subtitle-main">Track, verify, and approve security gate access credentials.</p>
         </div>
         {can('create_pass') && (
           <button onClick={() => navigate('/passes/new')} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -128,43 +137,26 @@ export const PassListPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.25rem', marginBottom: '2rem' }}>
+      <div className="card-standard" style={{ padding: '1.25rem' }}>
         <form onSubmit={handleSearchSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
-          <div style={{ flexGrow: 1, minWidth: '200px' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Search Query</label>
+          <div style={{ flexGrow: 1, minWidth: '220px' }}>
+            <label className="form-label-standard">Search Query</label>
             <input 
               type="text" 
               placeholder="Search by visitor name, pass #, phone..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{
-                width: '100%',
-                backgroundColor: '#ffffff',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-main)',
-                padding: '0.6rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                boxSizing: 'border-box',
-              }}
+              className="form-input-standard"
             />
           </div>
 
           <div style={{ width: '180px' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Pass Type</label>
+            <label className="form-label-standard">Pass Type</label>
             <select
               value={passType}
               onChange={(e) => setPassType(e.target.value)}
-              style={{
-                width: '100%',
-                backgroundColor: '#ffffff',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-main)',
-                padding: '0.6rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-              }}
+              className="form-input-standard"
+              style={{ cursor: 'pointer' }}
             >
               <option value="">All Types</option>
               <option value="VISITOR">Visitor Pass</option>
@@ -177,20 +169,12 @@ export const PassListPage: React.FC = () => {
           </div>
 
           <div style={{ width: '180px' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Status</label>
+            <label className="form-label-standard">Status</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              style={{
-                width: '100%',
-                backgroundColor: '#ffffff',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-main)',
-                padding: '0.6rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-              }}
+              className="form-input-standard"
+              style={{ cursor: 'pointer' }}
             >
               <option value="">All Statuses</option>
               <option value="PENDING_APPROVAL">Pending Review</option>
@@ -210,90 +194,77 @@ export const PassListPage: React.FC = () => {
       </div>
 
       {/* Main Table List */}
-      <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', overflowX: 'auto' }}>
+      <div className="card-standard" style={{ padding: 0, overflowX: 'auto' }}>
         {loading ? (
           <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-            <Loader2 size={32} className="animate-spin" style={{ color: 'var(--primary)' }} />
-            <p style={{ marginTop: '1rem' }}>Loading passes...</p>
+            <Loader2 size={32} className="animate-spin" style={{ color: '#002147' }} />
+            <p style={{ marginTop: '1rem', fontSize: '0.875rem' }}>Loading passes...</p>
           </div>
         ) : passes.length === 0 ? (
           <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-            <Inbox size={48} style={{ color: 'var(--text-muted)' }} />
-            <h3 style={{ marginTop: '1rem' }}>No Passes Found</h3>
-            <p style={{ marginTop: '0.5rem' }}>Try adjusting your search criteria or register a new pass request.</p>
+            <Inbox size={44} style={{ color: '#94a3b8' }} />
+            <h3 style={{ marginTop: '1rem', color: 'var(--text-h)', fontSize: '1rem' }}>No Passes Found</h3>
+            <p style={{ marginTop: '0.25rem', fontSize: '0.8125rem' }}>Try adjusting your search criteria or register a new pass request.</p>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9375rem' }}>
+          <table className="table-standard">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)' }}>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Pass Code</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Visitor / Guest</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Purpose</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Validity Period</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Status</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600, textAlign: 'right' }}>Actions</th>
+              <tr>
+                <th>Pass Code</th>
+                <th>Visitor / Guest</th>
+                <th>Purpose</th>
+                <th>Validity Period</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {passes.map((pass) => {
-                const styleColors = getStatusColor(pass.status);
-                return (
-                  <tr key={pass.id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background-color 0.2s' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                    <td style={{ padding: '1.25rem 1.5rem' }}>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#60a5fa' }}>{pass.passNumber}</span>
-                      <span style={{ display: 'block', fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>{pass.passType}</span>
-                    </td>
-                    <td style={{ padding: '1.25rem 1.5rem' }}>
-                      <span style={{ fontWeight: 600 }}>{pass.visitor?.name || 'Bulk Invites'}</span>
-                      <span style={{ display: 'block', fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>{pass.visitor?.phone || 'N/A'}</span>
-                    </td>
-                    <td style={{ padding: '1.25rem 1.5rem', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      <span>{pass.purpose}</span>
-                    </td>
-                    <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.8125rem' }}>
-                      <div>From: {new Date(pass.validFrom).toLocaleString()}</div>
-                      <div style={{ color: '#94a3b8', marginTop: '2px' }}>To: {new Date(pass.validTo).toLocaleString()}</div>
-                    </td>
-                    <td style={{ padding: '1.25rem 1.5rem' }}>
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        backgroundColor: styleColors.bg,
-                        color: styleColors.text,
-                      }}>
-                        {pass.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                        <button onClick={() => navigate(`/passes/${pass.id}`)} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8125rem' }}>
-                          View
+              {passes.map((pass) => (
+                <tr key={pass.id}>
+                  <td>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#3b82f6' }}>{pass.passNumber}</span>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', marginTop: '2px', fontWeight: 600 }}>{formatPassType(pass.passType)}</span>
+                  </td>
+                  <td>
+                    <span style={{ fontWeight: 700, color: 'var(--text-h)' }}>{pass.visitor?.name || 'Bulk Invites'}</span>
+                    <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>{pass.visitor?.phone || 'N/A'}</span>
+                  </td>
+                  <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>{pass.purpose}</span>
+                  </td>
+                  <td style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
+                    <div><span style={{ fontWeight: 600, color: 'var(--text-h)' }}>From:</span> {new Date(pass.validFrom).toLocaleString()}</div>
+                    <div style={{ marginTop: '2px' }}><span style={{ fontWeight: 600, color: 'var(--text-h)' }}>To:</span> {new Date(pass.validTo).toLocaleString()}</div>
+                  </td>
+                  <td>
+                    <span className={getStatusClass(pass.status)}>
+                      {pass.status.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                      <button onClick={() => navigate(`/passes/${pass.id}`)} className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8125rem' }}>
+                        View
+                      </button>
+                      
+                      {/* Approve/Reject actions */}
+                      {pass.status === 'PENDING_APPROVAL' && can('approve_pass') && (
+                        <button onClick={() => setSelectedPass(pass)} className="btn btn-primary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8125rem', backgroundColor: '#10b981', borderColor: '#10b981' }}>
+                          Review
                         </button>
-                        
-                        {/* Approve/Reject actions */}
-                        {pass.status === 'PENDING_APPROVAL' && can('approve_pass') && (
-                          <button onClick={() => setSelectedPass(pass)} className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8125rem', backgroundColor: '#10b981', borderColor: '#10b981' }}>
-                            Review
-                          </button>
-                        )}
+                      )}
 
-                        {/* Revoke button */}
-                        {(pass.status === 'APPROVED' || pass.status === 'ACTIVE') && 
-                          (pass.requesterId === user?.id || ['SECURITY_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '')) && (
-                          <button onClick={() => { setRevokeError(null); setRevokingPass(pass); }} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8125rem', color: '#ef4444', borderColor: '#ef4444' }}>
-                            Revoke
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      {/* Revoke button */}
+                      {(pass.status === 'APPROVED' || pass.status === 'ACTIVE') && 
+                        (pass.requesterId === user?.id || ['SECURITY_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '')) && (
+                        <button onClick={() => { setRevokeError(null); setRevokingPass(pass); }} className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8125rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)', backgroundColor: 'rgba(239, 68, 68, 0.05)' }}>
+                          Revoke
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
@@ -301,7 +272,7 @@ export const PassListPage: React.FC = () => {
 
       {/* Pagination Controls */}
       {count > limit && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem' }}>
           <button 
             disabled={page === 1} 
             onClick={() => setPage(page - 1)}
@@ -310,7 +281,7 @@ export const PassListPage: React.FC = () => {
           >
             Previous
           </button>
-          <span style={{ alignSelf: 'center', fontSize: '0.875rem', color: '#94a3b8' }}>
+          <span style={{ alignSelf: 'center', fontSize: '0.8125rem', color: 'var(--text-muted)', fontWeight: 600 }}>
             Page {page} of {Math.ceil(count / limit)}
           </span>
           <button 
@@ -332,53 +303,44 @@ export const PassListPage: React.FC = () => {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000,
         }}>
-          <div style={{
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '16px',
-            padding: '2rem',
+          <div className="card-standard" style={{
             width: '100%',
-            maxWidth: '500px',
+            maxWidth: '460px',
             boxSizing: 'border-box',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
           }}>
-            <h3 style={{ margin: '0 0 1rem 0' }}>Review Gate Pass Request</h3>
-            <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-h)' }}>Review Gate Pass Request</h3>
+            <p style={{ color: '#64748b', fontSize: '0.8125rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
               Review access request for <strong>{selectedPass.visitor?.name}</strong> (Pass Number: {selectedPass.passNumber}).
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#94a3b8' }}>Warden/Approver Comments</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
+              <label className="form-label-standard">Warden/Approver Comments</label>
               <textarea
                 rows={3}
                 placeholder="Enter remarks or grounds for approval/rejection..."
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
-                style={{
-                  backgroundColor: '#ffffff',
-                  border: '1px solid var(--border-color)',
-                  color: 'var(--text-main)',
-                  padding: '0.75rem',
-                  borderRadius: '8px',
-                  fontFamily: 'inherit',
-                  fontSize: '0.875rem',
-                }}
+                className="form-input-standard"
+                style={{ fontFamily: 'inherit', resize: 'vertical' }}
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <button disabled={reviewing} onClick={() => setSelectedPass(null)} className="btn btn-secondary">
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button disabled={reviewing} onClick={() => setSelectedPass(null)} className="btn btn-secondary" style={{ padding: '0.45rem 1rem' }}>
                 Cancel
               </button>
-              <button disabled={reviewing} onClick={() => handleReview(false)} className="btn btn-secondary" style={{ color: '#ef4444', borderColor: '#ef4444' }}>
+              <button disabled={reviewing} onClick={() => handleReview(false)} className="btn btn-secondary" style={{ padding: '0.45rem 1rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)', backgroundColor: 'rgba(239, 68, 68, 0.05)' }}>
                 Reject
               </button>
-              <button disabled={reviewing} onClick={() => handleReview(true)} className="btn btn-primary" style={{ backgroundColor: '#10b981', borderColor: '#10b981' }}>
+              <button disabled={reviewing} onClick={() => handleReview(true)} className="btn btn-primary" style={{ padding: '0.45rem 1rem', backgroundColor: '#10b981', borderColor: '#10b981' }}>
                 Approve
               </button>
             </div>
@@ -394,56 +356,47 @@ export const PassListPage: React.FC = () => {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000,
         }}>
-          <div style={{
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '16px',
-            padding: '2rem',
+          <div className="card-standard" style={{
             width: '100%',
-            maxWidth: '500px',
+            maxWidth: '460px',
             boxSizing: 'border-box',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
           }}>
-            <h3 style={{ margin: '0 0 1rem 0', color: '#ef4444' }}>Revoke Access Pass</h3>
-            <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.125rem', fontWeight: 700, color: '#ef4444' }}>Revoke Access Pass</h3>
+            <p style={{ color: '#64748b', fontSize: '0.8125rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
               Are you sure you want to revoke pass <strong>{revokingPass.passNumber}</strong>? The visitor will immediately be denied campus access.
             </p>
 
             {revokeError && (
-              <div style={{ color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+              <div style={{ color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.15)', padding: '0.65rem 0.85rem', borderRadius: '6px', marginBottom: '1.25rem', fontSize: '0.8125rem', fontWeight: 600 }}>
                 {revokeError}
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#94a3b8' }}>Revocation Reason</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
+              <label className="form-label-standard">Revocation Reason</label>
               <textarea
                 rows={3}
                 placeholder="Enter justification for revoking this pass..."
                 value={revokeReason}
                 onChange={(e) => setRevokeReason(e.target.value)}
-                style={{
-                  backgroundColor: '#ffffff',
-                  border: '1px solid var(--border-color)',
-                  color: 'var(--text-main)',
-                  padding: '0.75rem',
-                  borderRadius: '8px',
-                  fontFamily: 'inherit',
-                  fontSize: '0.875rem',
-                }}
+                className="form-input-standard"
+                style={{ fontFamily: 'inherit', resize: 'vertical' }}
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <button onClick={() => setRevokingPass(null)} className="btn btn-secondary">
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button onClick={() => setRevokingPass(null)} className="btn btn-secondary" style={{ padding: '0.45rem 1rem' }}>
                 Cancel
               </button>
-              <button onClick={handleRevoke} className="btn btn-primary" style={{ backgroundColor: '#ef4444', borderColor: '#ef4444' }}>
+              <button onClick={handleRevoke} className="btn btn-primary" style={{ padding: '0.45rem 1rem', backgroundColor: '#ef4444', borderColor: '#ef4444' }}>
                 Revoke Pass
               </button>
             </div>

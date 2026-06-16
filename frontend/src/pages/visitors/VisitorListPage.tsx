@@ -101,53 +101,44 @@ export const VisitorListPage: React.FC = () => {
 
   const isAdminRole = ['SECURITY_ADMIN', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN'].includes(user?.role || '');
 
+  const getCategoryClass = (v: Visitor) => {
+    if (v.blacklisted) return 'status-pill-standard rejected';
+    if (v.category === 'VIP') return 'status-pill-standard pending';
+    return 'status-pill-standard approved';
+  };
+
   return (
-    <div className="visitor-list-container">
-      <div style={{ marginBottom: '2rem' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Visitors Directory</h2>
-        <p style={{ margin: '0.25rem 0 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>
-          Historical directory of all registered campus visitors. Search profile details and manage blacklist designations.
-        </p>
+    <div className="visitor-list-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      
+      {/* Page Header */}
+      <div className="page-header-standard">
+        <div>
+          <h2 className="page-title-main">Campus Visitors Registry</h2>
+          <p className="page-subtitle-main">Historical directory of registered visitors. Manage blacklist designations and access records.</p>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.25rem', marginBottom: '2rem' }}>
+      <div className="card-standard" style={{ padding: '1.25rem' }}>
         <form onSubmit={handleSearchSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
-          <div style={{ flexGrow: 1, minWidth: '200px' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Search visitor</label>
+          <div style={{ flexGrow: 1, minWidth: '220px' }}>
+            <label className="form-label-standard">Search Visitor Profile</label>
             <input 
               type="text" 
               placeholder="Search by name, phone number, ID card..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{
-                width: '100%',
-                backgroundColor: '#ffffff',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-main)',
-                padding: '0.6rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                boxSizing: 'border-box',
-              }}
+              className="form-input-standard"
             />
           </div>
 
           <div style={{ width: '180px' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Category</label>
+            <label className="form-label-standard">Filter Category</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              style={{
-                width: '100%',
-                backgroundColor: '#ffffff',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-main)',
-                padding: '0.6rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-              }}
+              className="form-input-standard"
+              style={{ cursor: 'pointer' }}
             >
               <option value="">All Categories</option>
               <option value="REGULAR">Regular</option>
@@ -164,62 +155,54 @@ export const VisitorListPage: React.FC = () => {
       </div>
 
       {/* Directory Table */}
-      <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: '12px', overflowX: 'auto' }}>
+      <div className="card-standard" style={{ padding: 0, overflowX: 'auto' }}>
         {loading ? (
           <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-            <Loader2 size={32} className="animate-spin" style={{ color: 'var(--primary)' }} />
-            <p style={{ marginTop: '1rem' }}>Loading directory...</p>
+            <Loader2 size={32} className="animate-spin" style={{ color: '#002147' }} />
+            <p style={{ marginTop: '1rem', fontSize: '0.875rem' }}>Loading directory...</p>
           </div>
         ) : visitors.length === 0 ? (
           <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-            <Users size={48} style={{ color: 'var(--text-muted)' }} />
-            <h3 style={{ marginTop: '1rem' }}>No Visitors Found</h3>
-            <p style={{ marginTop: '0.5rem' }}>Ensure name spelling or category filters are selected correctly.</p>
+            <Users size={44} style={{ color: '#94a3b8' }} />
+            <h3 style={{ marginTop: '1rem', color: 'var(--text-h)', fontSize: '1rem' }}>No Visitors Found</h3>
+            <p style={{ marginTop: '0.25rem', fontSize: '0.8125rem' }}>Ensure name spelling or category filters are selected correctly.</p>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9375rem' }}>
+          <table className="table-standard">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)' }}>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Visitor Name</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Contact Info</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Identity Credentials</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Category Status</th>
-                <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600 }}>Date Enrolled</th>
-                {isAdminRole && <th style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontWeight: 600, textAlign: 'right' }}>Security Actions</th>}
+              <tr>
+                <th>Visitor Name</th>
+                <th>Contact Info</th>
+                <th>Identity Credentials</th>
+                <th>Category / Status</th>
+                <th>Date Enrolled</th>
+                {isAdminRole && <th style={{ textAlign: 'right' }}>Security Actions</th>}
               </tr>
             </thead>
             <tbody>
               {visitors.map((visitor) => (
-                <tr key={visitor.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <td style={{ padding: '1.25rem 1.5rem', fontWeight: 600 }}>{visitor.name}</td>
-                  <td style={{ padding: '1.25rem 1.5rem' }}>
-                    <div>{visitor.phone}</div>
-                    {visitor.email && <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>{visitor.email}</div>}
+                <tr key={visitor.id}>
+                  <td style={{ fontWeight: 700, color: 'var(--text-h)' }}>{visitor.name}</td>
+                  <td>
+                    <div style={{ fontWeight: 500 }}>{visitor.phone}</div>
+                    {visitor.email && <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>{visitor.email}</div>}
                   </td>
-                  <td style={{ padding: '1.25rem 1.5rem' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', backgroundColor: '#ffffff', padding: '2px 6px', borderRadius: '4px' }}>
+                  <td>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', backgroundColor: 'var(--bg-base)', padding: '3px 6px', borderRadius: '4px', border: '1px solid var(--border-color)', fontWeight: 600 }}>
                       {visitor.idType}
                     </span>
-                    <span style={{ display: 'inline-block', marginLeft: '0.5rem', fontSize: '0.875rem' }}>{visitor.idNumber}</span>
+                    <span style={{ marginLeft: '0.5rem', fontWeight: 500, fontSize: '0.8125rem' }}>{visitor.idNumber}</span>
                   </td>
-                  <td style={{ padding: '1.25rem 1.5rem' }}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '0.25rem 0.6rem',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                      backgroundColor: visitor.blacklisted ? 'rgba(239, 68, 68, 0.15)' : visitor.category === 'VIP' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                      color: visitor.blacklisted ? '#ef4444' : visitor.category === 'VIP' ? '#f59e0b' : '#10b981',
-                    }}>
+                  <td>
+                    <span className={getCategoryClass(visitor)}>
                       {visitor.blacklisted ? 'BLACKLISTED' : visitor.category}
                     </span>
                   </td>
-                  <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.8125rem', color: '#94a3b8' }}>
+                  <td style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
                     {new Date(visitor.createdAt).toLocaleDateString()}
                   </td>
                   {isAdminRole && (
-                    <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right' }}>
+                    <td style={{ textAlign: 'right' }}>
                       <button 
                         onClick={() => handleBlacklistToggle(visitor)}
                         className="btn btn-secondary"
@@ -227,7 +210,8 @@ export const VisitorListPage: React.FC = () => {
                           padding: '0.35rem 0.75rem',
                           fontSize: '0.8125rem',
                           color: visitor.blacklisted ? '#10b981' : '#ef4444',
-                          borderColor: visitor.blacklisted ? '#10b981' : '#ef4444',
+                          borderColor: visitor.blacklisted ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                          backgroundColor: visitor.blacklisted ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)',
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '0.25rem',
@@ -235,11 +219,11 @@ export const VisitorListPage: React.FC = () => {
                       >
                         {visitor.blacklisted ? (
                           <>
-                            <RotateCcw size={14} /> Restore Visitor
+                            <RotateCcw size={13} /> Restore Profile
                           </>
                         ) : (
                           <>
-                            <ShieldAlert size={14} /> Blacklist
+                            <ShieldAlert size={13} /> Blacklist Profile
                           </>
                         )}
                       </button>
@@ -254,11 +238,11 @@ export const VisitorListPage: React.FC = () => {
 
       {/* Pagination Controls */}
       {count > limit && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem' }}>
           <button disabled={page === 1} onClick={() => setPage(page - 1)} className="btn btn-secondary" style={{ opacity: page === 1 ? 0.5 : 1 }}>
             Previous
           </button>
-          <span style={{ alignSelf: 'center', fontSize: '0.875rem', color: '#94a3b8' }}>
+          <span style={{ alignSelf: 'center', fontSize: '0.8125rem', color: 'var(--text-muted)', fontWeight: 600 }}>
             Page {page} of {Math.ceil(count / limit)}
           </span>
           <button disabled={page * limit >= count} onClick={() => setPage(page + 1)} className="btn btn-secondary" style={{ opacity: page * limit >= count ? 0.5 : 1 }}>
@@ -275,59 +259,50 @@ export const VisitorListPage: React.FC = () => {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000,
         }}>
-          <div style={{
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '16px',
-            padding: '2rem',
+          <div className="card-standard" style={{
             width: '100%',
-            maxWidth: '500px',
+            maxWidth: '460px',
             boxSizing: 'border-box',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
           }}>
-            <h3 style={{ margin: '0 0 1rem 0', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.125rem', fontWeight: 700 }}>
               <ShieldAlert size={20} /> Blacklist Visitor Profile
             </h3>
-            <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            <p style={{ color: '#64748b', fontSize: '0.8125rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
               You are about to blacklist <strong>{selectedVisitor.name}</strong>. They will be immediately blocked from booking new passes, and any current active passes will trigger red alerts at gate terminals.
             </p>
 
             {blacklistError && (
-              <div style={{ color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+              <div style={{ color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.15)', padding: '0.65rem 0.85rem', borderRadius: '6px', marginBottom: '1.25rem', fontSize: '0.8125rem', fontWeight: 600 }}>
                 {blacklistError}
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#94a3b8' }}>Reason for Blacklist</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
+              <label className="form-label-standard">Reason for Blacklist</label>
               <textarea
                 rows={3}
                 placeholder="Enter justification details for campus ban..."
                 value={blacklistReason}
                 onChange={(e) => setBlacklistReason(e.target.value)}
-                style={{
-                  backgroundColor: '#ffffff',
-                  border: '1px solid var(--border-color)',
-                  color: 'var(--text-main)',
-                  padding: '0.75rem',
-                  borderRadius: '8px',
-                  fontFamily: 'inherit',
-                  fontSize: '0.875rem',
-                }}
+                className="form-input-standard"
+                style={{ fontFamily: 'inherit', resize: 'vertical' }}
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <button disabled={submitting} onClick={() => setSelectedVisitor(null)} className="btn btn-secondary">
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button disabled={submitting} onClick={() => setSelectedVisitor(null)} className="btn btn-secondary" style={{ padding: '0.45rem 1rem' }}>
                 Cancel
               </button>
-              <button disabled={submitting} onClick={submitBlacklist} className="btn btn-primary" style={{ backgroundColor: '#ef4444', borderColor: '#ef4444' }}>
-                Confirm Campus Ban
+              <button disabled={submitting} onClick={submitBlacklist} className="btn btn-primary" style={{ padding: '0.45rem 1rem', backgroundColor: '#ef4444', borderColor: '#ef4444' }}>
+                Confirm Blacklist
               </button>
             </div>
           </div>
