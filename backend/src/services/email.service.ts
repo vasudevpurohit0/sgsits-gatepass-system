@@ -42,19 +42,23 @@ export class EmailService {
         const isDefaultSandbox = process.env.RESEND_API_KEY.includes('re_') && !process.env.RESEND_CUSTOM_DOMAIN;
         const resendFrom = isDefaultSandbox ? 'onboarding@resend.dev' : `"${fromName}" <${fromEmail}>`;
 
+        const resendPayload: any = {
+          from: resendFrom,
+          to,
+          subject,
+          html,
+        };
+        if (resendAttachments && resendAttachments.length > 0) {
+          resendPayload.attachments = resendAttachments;
+        }
+
         const response = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            from: resendFrom,
-            to,
-            subject,
-            html,
-            attachments: resendAttachments,
-          }),
+          body: JSON.stringify(resendPayload),
         });
 
         const resData: any = await response.json();
@@ -78,19 +82,23 @@ export class EmailService {
           name: att.filename,
         })) : [];
 
+        const brevoPayload: any = {
+          sender: { name: fromName, email: fromEmail },
+          to: [{ email: to }],
+          subject,
+          htmlContent: html,
+        };
+        if (brevoAttachments && brevoAttachments.length > 0) {
+          brevoPayload.attachment = brevoAttachments;
+        }
+
         const response = await fetch('https://api.brevo.com/v3/smtp/email', {
           method: 'POST',
           headers: {
             'api-key': process.env.BREVO_API_KEY,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            sender: { name: fromName, email: fromEmail },
-            to: [{ email: to }],
-            subject,
-            htmlContent: html,
-            attachment: brevoAttachments,
-          }),
+          body: JSON.stringify(brevoPayload),
         });
 
         const resData: any = await response.json();

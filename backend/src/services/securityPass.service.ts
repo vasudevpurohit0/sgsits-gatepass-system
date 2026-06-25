@@ -8,6 +8,7 @@ import { StorageService } from './storage.service';
 import { EmailService } from './email.service';
 import { NotificationService } from './notification.service';
 import { env } from '../config/env';
+import { prisma } from '../config/database';
 import ApiError from '../utils/ApiError';
 import { logger } from '../utils/logger';
 
@@ -135,11 +136,48 @@ export class SecurityPassService {
           const res = await this.emailService.sendSecurityApprovalEmail(approverEmail, pass, visitor, creatorName, approveLink, rejectLink);
           if (res && !res.success) {
             logger.error(`❌ Failed to send security approval email to ${approverEmail}: ${res.error}`);
+            await prisma.emailDeliveryLog.create({
+              data: {
+                passId: pass.id,
+                passNumber: pass.passNumber,
+                visitorName: visitor.name,
+                visitorEmail: approverEmail,
+                status: "FAILED",
+                sentTimestamp: null,
+                errorMessage: res.error || "Brevo/Resend API rejected transmission",
+              }
+            });
           } else {
             logger.info(`📧 Security approval email successfully dispatched to ${approverEmail}`);
+            await prisma.emailDeliveryLog.create({
+              data: {
+                passId: pass.id,
+                passNumber: pass.passNumber,
+                visitorName: visitor.name,
+                visitorEmail: approverEmail,
+                status: "SUCCESS",
+                sentTimestamp: new Date(),
+                errorMessage: null,
+              }
+            });
           }
-        } catch (err) {
+        } catch (err: any) {
           logger.error(`❌ Unhandled exception sending security approval email to ${approverEmail}:`, err);
+          try {
+            await prisma.emailDeliveryLog.create({
+              data: {
+                passId: pass.id,
+                passNumber: pass.passNumber,
+                visitorName: visitor.name,
+                visitorEmail: approverEmail,
+                status: "FAILED",
+                sentTimestamp: null,
+                errorMessage: err.message || String(err),
+              }
+            });
+          } catch (dbErr) {
+            logger.error('❌ Failed to create email log in database:', dbErr);
+          }
         }
       }
     });
