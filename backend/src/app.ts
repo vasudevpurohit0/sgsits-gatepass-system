@@ -153,6 +153,20 @@ app.get(`${env.API_PREFIX}/health/smtp-diagnostics`, async (_req, res) => {
   res.status(200).json(new ApiResponse(200, diagnostics, 'SMTP Diagnostics completed'));
 });
 
+// Code Diagnostics endpoint to verify deployment version
+app.get(`${env.API_PREFIX}/health/code-diagnostics`, async (_req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  try {
+    const filePath = path.join(__dirname, 'services', 'securityPass.service.js');
+    const content = fs.readFileSync(filePath, 'utf8');
+    const hasDbLogging = content.includes('emailDeliveryLog');
+    res.status(200).json(new ApiResponse(200, { hasDbLogging, length: content.length, snippet: content.slice(0, 1000) }, 'Code diagnostics completed'));
+  } catch (err: any) {
+    res.status(500).json(new ApiResponse(500, { error: err.message }, 'Code diagnostics failed'));
+  }
+});
+
 
 // Root API response
 app.get('/', (_req, res) => {
