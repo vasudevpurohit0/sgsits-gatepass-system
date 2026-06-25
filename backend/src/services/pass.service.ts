@@ -192,7 +192,7 @@ export class PassService {
   /**
    * Helper to generate encrypted QR code payload and upload image to MinIO
    */
-  private async generateAndAttachQR(passId: string, passNumber: string, validTo: Date, frontendUrlParam?: string): Promise<Pass> {
+  async generateAndAttachQR(passId: string, passNumber: string, validTo: Date, frontendUrlParam?: string): Promise<Pass> {
     // 1. Encrypt token payload (AES-256-CBC + HMAC-SHA256)
     const qrToken = encryptQRToken({
       passId,

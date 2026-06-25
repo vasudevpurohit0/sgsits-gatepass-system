@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { usePermissions } from '../hooks/usePermissions';
-import { 
-  LayoutDashboard, 
-  Ticket, 
-  Users, 
-  Scan, 
-  ClipboardList, 
+import {
+  LayoutDashboard,
+  Ticket,
+  Users,
+  Scan,
+  ClipboardList,
   LogOut,
   Menu,
-  Clock
+  Clock,
+  ShieldAlert
 } from 'lucide-react';
 
 export const DashboardLayout: React.FC = () => {
@@ -40,6 +41,12 @@ export const DashboardLayout: React.FC = () => {
       path: '/passes',
       icon: <Ticket size={18} />,
       show: can('create_pass') || can('approve_pass') || can('scan_qr'),
+    },
+    {
+      name: 'Security Passes',
+      path: '/security-pass',
+      icon: <ShieldAlert size={18} />,
+      show: can('create_security_pass'),
     },
     {
       name: 'Visitors Directory',

@@ -13,6 +13,9 @@ import VisitorListPage from './pages/visitors/VisitorListPage';
 import GateTerminalPage from './pages/terminal/GateTerminalPage';
 import AuditLogsPage from './pages/audit/AuditLogsPage';
 import UnauthorizedPage from './pages/auth/UnauthorizedPage';
+import CreateSecurityPassPage from './pages/securityPass/CreateSecurityPassPage';
+import SecurityPassListPage from './pages/securityPass/SecurityPassListPage';
+import SecurityPassRespondPage from './pages/securityPass/SecurityPassRespondPage';
 import GuestRoute from './routes/GuestRoute';
 import ProtectedRoute from './routes/ProtectedRoute';
 import { useAuth } from './hooks/useAuth';
@@ -42,10 +45,15 @@ function App() {
           <Route path="/passes" element={<PassListPage />} />
           <Route path="/passes/new" element={<CreatePassPage />} />
           <Route path="/passes/:id" element={<PassDetailPage />} />
+          <Route path="/security-pass" element={<SecurityPassListPage />} />
+          <Route path="/security-pass/new" element={<CreateSecurityPassPage />} />
           <Route path="/visitors" element={<VisitorListPage />} />
           <Route path="/terminal" element={<GateTerminalPage />} />
           <Route path="/audit" element={<AuditLogsPage />} />
         </Route>
+
+        {/* Public Security Pass approval response page (clicked from email, no auth) */}
+        <Route path="/security-pass/respond" element={<SecurityPassRespondPage />} />
 
         {/* Access denied page */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />

@@ -26,6 +26,7 @@ export const requireRole = (allowedRoles: UserRole[]) => {
 // Define all possible system actions
 export type SystemPermission =
   | 'view_own_pass' | 'view_all_passes' | 'create_visitor_pass' | 'create_hostel_pass' | 'create_event_pass' | 'create_vehicle_pass'
+  | 'create_security_pass'
   | 'approve_pass' | 'reject_pass' | 'revoke_pass' | 'delete_pass' | 'bulk_generate_passes' | 'export_passes'
   | 'scan_qr' | 'log_entry_exit' | 'view_entry_logs' | 'manual_override' | 'trigger_lockdown'
   | 'view_own_profile' | 'edit_own_profile' | 'create_users' | 'deactivate_users' | 'assign_roles' | 'manage_system'
@@ -39,6 +40,7 @@ const PERMISSION_ROLES_MAP: Record<SystemPermission, UserRole[]> = {
   create_hostel_pass: ['STUDENT', 'SECURITY_ADMIN', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN'],
   create_event_pass: ['FACULTY', 'STAFF', 'SECURITY_ADMIN', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN'],
   create_vehicle_pass: ['STAFF', 'SECURITY_ADMIN', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN'],
+  create_security_pass: ['SECURITY_GUARD', 'SECURITY_ADMIN', 'SUPER_ADMIN'],
   approve_pass: ['SECURITY_ADMIN', 'SUPER_ADMIN'],
   reject_pass: ['SECURITY_ADMIN', 'SUPER_ADMIN'],
   revoke_pass: ['STUDENT', 'FACULTY', 'STAFF', 'HOSTEL_WARDEN', 'SECURITY_ADMIN', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN'], // Student/Faculty/Staff own only validation is done in service layer

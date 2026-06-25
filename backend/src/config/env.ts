@@ -44,6 +44,9 @@ const envSchema = z.object({
   EMAIL_PASS: z.string().default(''),
   SMTP_FROM_EMAIL: z.string().email().default('noreply@university.edu'),
   SMTP_FROM_NAME: z.string().default('University Gate Pass System'),
+
+  SECURITY_APPROVER_EMAILS: z.string().default(''),
+  SECURITY_PASS_TOKEN_SECRET: z.string().min(32, 'SECURITY_PASS_TOKEN_SECRET must be at least 32 characters long').default('supersecretsecuritypasstokenkey1234567890!@#$'),
 });
 
 const parseEnv = () => {

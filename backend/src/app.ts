@@ -170,6 +170,7 @@ import userRouter from './routes/user.routes';
 import visitorRouter from './routes/visitor.routes';
 import passRouter from './routes/pass.routes';
 import entryLogRouter from './routes/entryLog.routes';
+import securityPassRouter from './routes/securityPass.routes';
 
 // Register API Routers
 app.use(`${env.API_PREFIX}/auth`, authRouter);
@@ -177,6 +178,7 @@ app.use(`${env.API_PREFIX}/user`, userRouter);
 app.use(`${env.API_PREFIX}/visitor`, visitorRouter);
 app.use(`${env.API_PREFIX}/pass`, passRouter);
 app.use(`${env.API_PREFIX}/entry`, entryLogRouter);
+app.use(`${env.API_PREFIX}/security-pass`, securityPassRouter);
 
 // 404 Route handler
 app.use((req, _res, next) => {

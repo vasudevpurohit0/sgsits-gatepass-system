@@ -26,6 +26,8 @@ export const usePermissions = () => {
     switch (action) {
       case 'create_pass':
         return ['STUDENT', 'FACULTY', 'STAFF', 'SECURITY_ADMIN', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN'].includes(role);
+      case 'create_security_pass':
+        return ['SECURITY_GUARD', 'SECURITY_ADMIN', 'SUPER_ADMIN'].includes(role);
       case 'approve_pass':
         return ['SECURITY_ADMIN', 'SUPER_ADMIN'].includes(role);
       case 'scan_qr':

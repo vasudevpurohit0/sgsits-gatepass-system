@@ -30,6 +30,7 @@ enum PassType {
   EVENT
   CONTRACTOR
   PARENT
+  SECURITY_PASS
 }
 
 enum PassStatus {
@@ -43,6 +44,7 @@ enum PassStatus {
   REVOKED
   USED
   SUSPENDED
+  PENDING_SECURITY_APPROVAL
 }
 
 enum ApprovalStatus {
@@ -196,6 +198,14 @@ model Pass {
   approvedAt    DateTime?
   revokedAt     DateTime?
   revokedReason String?
+  whomToVisit         String?
+  expectedDuration    String?
+  visitorPhotoKey     String?
+  approvalToken       String?
+  approvalTokenExpiry DateTime?
+  approvedBy          String?
+  rejectedBy          String?
+  rejectedAt          DateTime?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 

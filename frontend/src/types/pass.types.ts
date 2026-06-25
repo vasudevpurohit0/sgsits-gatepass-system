@@ -4,7 +4,8 @@ export type PassType =
   | 'VEHICLE'
   | 'EVENT'
   | 'CONTRACTOR'
-  | 'PARENT';
+  | 'PARENT'
+  | 'SECURITY_PASS';
 
 export type PassStatus =
   | 'DRAFT'
@@ -14,7 +15,8 @@ export type PassStatus =
   | 'ACTIVE'
   | 'USED'
   | 'EXPIRED'
-  | 'REVOKED';
+  | 'REVOKED'
+  | 'PENDING_SECURITY_APPROVAL';
 
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
@@ -114,6 +116,12 @@ export interface Pass {
   approvedAt?: string | null;
   revokedAt?: string | null;
   revokedReason?: string | null;
+  whomToVisit?: string | null;
+  expectedDuration?: string | null;
+  visitorPhotoKey?: string | null;
+  approvedBy?: string | null;
+  rejectedBy?: string | null;
+  rejectedAt?: string | null;
   visitor: Visitor;
   requester: {
     id: string;
