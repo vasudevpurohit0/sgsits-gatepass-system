@@ -132,9 +132,14 @@ export class SecurityPassService {
           const approveLink = `${resolvedFrontendUrl}/security-pass/respond?token=${encodeURIComponent(approveToken)}`;
           const rejectLink = `${resolvedFrontendUrl}/security-pass/respond?token=${encodeURIComponent(rejectToken)}`;
 
-          await this.emailService.sendSecurityApprovalEmail(approverEmail, pass, visitor, creatorName, approveLink, rejectLink);
+          const res = await this.emailService.sendSecurityApprovalEmail(approverEmail, pass, visitor, creatorName, approveLink, rejectLink);
+          if (res && !res.success) {
+            logger.error(`❌ Failed to send security approval email to ${approverEmail}: ${res.error}`);
+          } else {
+            logger.info(`📧 Security approval email successfully dispatched to ${approverEmail}`);
+          }
         } catch (err) {
-          logger.error(`❌ Failed to send security approval email to ${approverEmail}:`, err);
+          logger.error(`❌ Unhandled exception sending security approval email to ${approverEmail}:`, err);
         }
       }
     });

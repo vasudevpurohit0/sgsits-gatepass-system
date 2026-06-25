@@ -28,6 +28,7 @@ export class EmailService {
   private async dispatchMail(to: string, subject: string, html: string, attachments?: any[]): Promise<{ success: boolean; error?: string }> {
     const fromEmail = env.EMAIL_USER || env.SMTP_USER || env.SMTP_FROM_EMAIL || 'gatepass.sgsits@gmail.com';
     const fromName = env.SMTP_FROM_NAME || 'SGSITS Security Team';
+    const errors: string[] = [];
 
     // 1. Resend HTTP API Integration (Bypasses Railway SMTP port blocking)
     if (process.env.RESEND_API_KEY) {
@@ -64,7 +65,7 @@ export class EmailService {
         return { success: true };
       } catch (err: any) {
         logger.error('❌ Resend API dispatch failed:', err);
-        return { success: false, error: `Resend API failed: ${err.message}` };
+        errors.push(`Resend failed: ${err.message}`);
       }
     }
 
@@ -100,7 +101,7 @@ export class EmailService {
         return { success: true };
       } catch (err: any) {
         logger.error('❌ Brevo API dispatch failed:', err);
-        return { success: false, error: `Brevo API failed: ${err.message}` };
+        errors.push(`Brevo failed: ${err.message}`);
       }
     }
 
@@ -118,8 +119,10 @@ export class EmailService {
       return { success: true };
     } catch (error: any) {
       logger.error(`❌ Failed to send email via SMTP to ${to}:`, error);
-      return { success: false, error: error.message || String(error) };
+      errors.push(`SMTP failed: ${error.message || String(error)}`);
     }
+
+    return { success: false, error: errors.join(' | ') };
   }
 
   /**

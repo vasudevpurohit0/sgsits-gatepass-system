@@ -96,11 +96,16 @@ export class EntryLogService {
       logType = LogType.EXIT;
     }
 
-    // 5. Check Single-Entry reuse constraints
-    if (logType === LogType.ENTRY && !pass.isMultiEntry && lastLog) {
-      // Already has a logged visit
+
+
+    // Calculate total scans already registered
+    const logs = await prisma.entryLog.findMany({ where: { passId } });
+    const scanCount = logs.reduce((acc, log) => acc + (log.exitAt ? 2 : 1), 0);
+
+    // 5. Check Single-Entry reuse constraints (Max 4 scans = 2 entries + 2 exits allowed)
+    if (logType === LogType.ENTRY && !pass.isMultiEntry && scanCount >= 4) {
       await this.passRepository.update(passId, { status: PassStatus.USED });
-      throw new ApiError(403, 'Access Denied: Single-entry pass has already been used');
+      throw new ApiError(403, 'Access Denied: Single-entry pass has exceeded its scan reuse limit (Max 4 scans)');
     }
 
     // 6. Process entry/exit log and database updates
@@ -158,8 +163,11 @@ export class EntryLogService {
           },
         });
 
-        // If single-entry, mark pass as USED
-        if (!pass.isMultiEntry) {
+        // If single-entry and total scans reached 4 or more, mark pass as USED
+        const updatedLogs = await tx.entryLog.findMany({ where: { passId } });
+        const updatedScanCount = updatedLogs.reduce((acc, log) => acc + (log.exitAt ? 2 : 1), 0);
+
+        if (!pass.isMultiEntry && updatedScanCount >= 4) {
           await tx.pass.update({
             where: { id: passId },
             data: { status: PassStatus.USED },
@@ -273,7 +281,11 @@ export class EntryLogService {
           });
         }
 
-        if (!pass.isMultiEntry) {
+        // If single-entry and total scans reached 4 or more, mark pass as USED
+        const updatedLogs = await tx.entryLog.findMany({ where: { passId } });
+        const updatedScanCount = updatedLogs.reduce((acc: number, log: any) => acc + (log.exitAt ? 2 : 1), 0);
+
+        if (!pass.isMultiEntry && updatedScanCount >= 4) {
           await tx.pass.update({
             where: { id: passId },
             data: { status: PassStatus.USED },

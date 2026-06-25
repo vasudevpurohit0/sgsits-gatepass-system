@@ -172,7 +172,11 @@ export const GateTerminalPage: React.FC = () => {
       // Define optimized scan configuration (no custom aspect ratio constraints)
       const config = {
         fps: 10,
-        qrbox: { width: 250, height: 250 },
+        qrbox: (width: number, height: number) => {
+          const min = Math.min(width, height);
+          const boxSize = Math.floor(min * 0.7);
+          return { width: boxSize, height: boxSize };
+        },
         disableFlip: false,
       };
 
