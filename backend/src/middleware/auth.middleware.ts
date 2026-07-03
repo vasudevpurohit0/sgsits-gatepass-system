@@ -19,7 +19,7 @@ export const authenticateJWT = async (req: Request, _res: Response, next: NextFu
     // Verify user exists in database and is active
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, email: true, role: true, isActive: true },
+      select: { id: true, email: true, role: true, isActive: true, firstName: true, lastName: true },
     });
 
     if (!user) {
@@ -35,6 +35,8 @@ export const authenticateJWT = async (req: Request, _res: Response, next: NextFu
       id: user.id,
       email: user.email,
       role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
     };
 
     next();

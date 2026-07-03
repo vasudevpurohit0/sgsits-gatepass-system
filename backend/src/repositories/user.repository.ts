@@ -88,6 +88,18 @@ export class UserRepository {
   }
 
   /**
+   * Revoke every refresh token belonging to a user (used when token reuse/theft is suspected
+   * and we don't know which family the compromised token came from)
+   */
+  async revokeAllRefreshTokensForUser(userId: string): Promise<number> {
+    const result = await prisma.refreshToken.updateMany({
+      where: { userId, isRevoked: false },
+      data: { isRevoked: true },
+    });
+    return result.count;
+  }
+
+  /**
    * Revoke a single refresh token record by ID
    */
   async revokeRefreshTokenById(id: string): Promise<RefreshToken> {

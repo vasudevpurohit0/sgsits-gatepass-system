@@ -141,8 +141,10 @@ export class AuthService {
       
       const dbToken = await this.userRepository.findRefreshToken(tokenHash);
       if (!dbToken) {
-        // Reuse detection: if valid token signature but not in DB, it may be stolen
-        logger.warn(`⚠️ Refresh token reuse detected! Revoking family for user: ${decoded.userId}`);
+        // Reuse detection: valid token signature but not in DB (already rotated/used before, or forged).
+        // We don't know which family it belonged to, so revoke all sessions for this user as a precaution.
+        logger.warn(`⚠️ Refresh token reuse detected! Revoking all sessions for user: ${decoded.userId}`);
+        await this.userRepository.revokeAllRefreshTokensForUser(decoded.userId);
         throw new ApiError(401, 'Invalid refresh token');
       }
 

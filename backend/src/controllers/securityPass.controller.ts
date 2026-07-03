@@ -46,7 +46,7 @@ export const createSecurityPass = asyncHandler(async (req: Request, res: Respons
 
   const pass = await securityPassService.createSecurityPass(
     req.user.id,
-    req.user.email,
+    `${req.user.firstName} ${req.user.lastName}`,
     req.body,
     govIdFile ? { buffer: govIdFile.buffer, mimeType: govIdFile.mimetype } : undefined,
     visitorPhotoFile ? { buffer: visitorPhotoFile.buffer, mimeType: visitorPhotoFile.mimetype } : undefined,

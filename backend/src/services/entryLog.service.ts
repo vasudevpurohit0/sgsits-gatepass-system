@@ -44,17 +44,6 @@ export class EntryLogService {
     const validFrom = new Date(pass.validFrom);
     const validTo = new Date(pass.validTo);
 
-    // Debug logging for date and status verification
-    console.log("========== PASS VALIDATION ==========");
-    console.log("Current Server Time:", now.toISOString());
-    console.log("Pass ID:", pass.id);
-    console.log("Pass Status:", pass.status);
-    console.log("Valid From Raw:", pass.validFrom);
-    console.log("Valid To Raw:", pass.validTo);
-    console.log("Valid From ISO:", validFrom.toISOString());
-    console.log("Valid To ISO:", validTo.toISOString());
-    console.log("====================================");
-
     const formatIST = (d: Date) => d.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
 
     // Check pass status
