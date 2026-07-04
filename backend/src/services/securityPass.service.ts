@@ -9,7 +9,6 @@ import { EmailService } from './email.service';
 import { NotificationService } from './notification.service';
 import { env } from '../config/env';
 import { prisma } from '../config/database';
-import ApiError from '../utils/ApiError';
 import { logger } from '../utils/logger';
 
 const APPROVAL_TOKEN_EXPIRY = '24h';
@@ -66,13 +65,7 @@ export class SecurityPassService {
     visitorPhoto?: { buffer: Buffer; mimeType: string },
     frontendUrl?: string
   ): Promise<Pass> {
-    const availableApprovers = this.getApproverEmails();
     const selectedApprovers: string[] = Array.isArray(data.approverEmails) ? data.approverEmails : [data.approverEmails];
-
-    const invalidApprovers = selectedApprovers.filter(email => !availableApprovers.includes(email));
-    if (invalidApprovers.length > 0) {
-      throw new ApiError(400, `Invalid approver email(s): ${invalidApprovers.join(', ')}`);
-    }
 
     // 1. Resolve visitor record (reuses existing visitor find-or-create + blacklist check)
     const visitor = await this.visitorService.findOrCreateVisitor(

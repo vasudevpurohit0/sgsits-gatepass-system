@@ -23,6 +23,26 @@ export const CreateSecurityPassPage: React.FC = () => {
 
   const [availableApprovers, setAvailableApprovers] = useState<string[]>([]);
   const [selectedApprovers, setSelectedApprovers] = useState<string[]>([]);
+  const [customEmail, setCustomEmail] = useState('');
+  const [customEmailError, setCustomEmailError] = useState<string | null>(null);
+
+  const handleAddCustomEmail = () => {
+    setCustomEmailError(null);
+    const emailToVal = customEmail.trim().toLowerCase();
+    if (!emailToVal) return;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailToVal)) {
+      setCustomEmailError('Please enter a valid email address.');
+      return;
+    }
+    if (!availableApprovers.includes(emailToVal)) {
+      setAvailableApprovers(prev => [...prev, emailToVal]);
+    }
+    if (!selectedApprovers.includes(emailToVal)) {
+      setSelectedApprovers(prev => [...prev, emailToVal]);
+    }
+    setCustomEmail('');
+  };
 
   useEffect(() => {
     const fetchApprovers = async () => {
@@ -226,9 +246,7 @@ export const CreateSecurityPassPage: React.FC = () => {
         <div className="card-standard">
           <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1rem', fontWeight: 700, color: 'var(--text-h)', textTransform: 'uppercase', letterSpacing: '0.02em', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>2. Send Approval To</h3>
 
-          {availableApprovers.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No approver emails configured. Contact the system administrator to set SECURITY_APPROVER_EMAILS.</p>
-          ) : (
+          {availableApprovers.length > 0 && (
             <>
               <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginBottom: '0.75rem', fontSize: '0.875rem', fontWeight: 600 }}>
                 <input
@@ -238,7 +256,7 @@ export const CreateSecurityPassPage: React.FC = () => {
                 />
                 Select All
               </label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
                 {availableApprovers.map(approverEmail => (
                   <label key={approverEmail} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', backgroundColor: 'var(--bg-base)', padding: '0.45rem 0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '0.8125rem', fontWeight: 600 }}>
                     <input
@@ -252,6 +270,39 @@ export const CreateSecurityPassPage: React.FC = () => {
               </div>
             </>
           )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label className="form-label-standard" style={{ fontSize: '0.8125rem', margin: 0 }}>Add Custom Approver Email</label>
+            <div style={{ display: 'flex', gap: '0.5rem', maxWidth: '500px' }}>
+              <input
+                type="email"
+                value={customEmail}
+                onChange={(e) => setCustomEmail(e.target.value)}
+                placeholder="Enter custom email address..."
+                className="form-input-standard"
+                style={{ flex: 1, fontSize: '0.8125rem' }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddCustomEmail();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleAddCustomEmail}
+                className="btn btn-secondary"
+                style={{ padding: '0.45rem 1.25rem', fontSize: '0.8125rem', whiteSpace: 'nowrap' }}
+              >
+                Add
+              </button>
+            </div>
+            {customEmailError && (
+              <p style={{ color: '#ef4444', fontSize: '0.75rem', margin: '2px 0 0 0', fontWeight: 500 }}>
+                {customEmailError}
+              </p>
+            )}
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
