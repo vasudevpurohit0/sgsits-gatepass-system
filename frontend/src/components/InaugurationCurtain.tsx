@@ -1,14 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
 
-interface GoldParticle {
+interface CelebrationParticle {
   x: number;
   y: number;
   vx: number;
   vy: number;
   size: number;
   alpha: number;
+  color: string;
+  decay: number;
+  gravity: number;
   wobble: number;
   wobbleSpeed: number;
+  type: 'drift' | 'confetti' | 'firework';
 }
 
 export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
@@ -17,7 +21,7 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
   const [isRendered, setIsRendered] = useState<boolean>(true);
   
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const particlesRef = useRef<GoldParticle[]>([]);
+  const particlesRef = useRef<CelebrationParticle[]>([]);
   const animationFrameRef = useRef<number | null>(null);
   const spotlightRef = useRef<{ x: number; y: number; tx: number; ty: number }>({
     x: 50,
@@ -32,18 +36,19 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
     setIsOpen(true);
     sessionStorage.setItem('sgsits_inauguration_done', 'true');
 
-    // Trigger celebratory canvas burst
+    // Trigger full multi-colored celebration cracker bursts
     const canvas = canvasRef.current;
     if (canvas) {
-      particlesRef.current = []; // Clear old particles
-      createExplosion(canvas.width / 2, canvas.height / 2);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      createCelebrationBursts(cx, cy);
     }
 
-    // Smooth transition delay to match curtain opening duration
+    // Unmount after curtain transition ends (speed up to 2000ms from 2800ms)
     setTimeout(() => {
       setIsRendered(false);
       onComplete();
-    }, 2800);
+    }, 2000);
   };
 
   // Keyboard trigger (Enter key or Space) to launch once ready
@@ -60,16 +65,9 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
 
   // Ceremonial sequence timers
   useEffect(() => {
-    // Scene 2: 1.0s (Light expands, particles emerge, logo fades in)
     const timer2 = setTimeout(() => setActiveScene(2), 1000);
-
-    // Scene 3: 2.5s (SGSITS Indore text, main title, subtitle, gold line draw)
     const timer3 = setTimeout(() => setActiveScene(3), 2500);
-
-    // Scene 4: 4.2s (Official Dedication staggered text)
     const timer4 = setTimeout(() => setActiveScene(4), 4200);
-
-    // Scene 5: 6.0s (Launch Button reveals and pulses)
     const timer5 = setTimeout(() => setActiveScene(5), 6000);
 
     return () => {
@@ -80,26 +78,51 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
     };
   }, []);
 
-  // Particle explosion logic for celebration
-  const createExplosion = (x: number, y: number) => {
+  // Multi-colored cracker bursts (sparks + confetti)
+  const createCelebrationBursts = (x: number, y: number) => {
+    const colors = ['#ffd700', '#ff4d4d', '#ff9900', '#33cc33', '#3399ff', '#ff33cc', '#ffffff'];
     const particles = particlesRef.current;
-    for (let i = 0; i < 40; i++) {
+
+    // Firework spark circles
+    for (let i = 0; i < 70; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 4 + 3;
+      const speed = Math.random() * 7 + 4;
       particles.push({
         x,
         y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        size: Math.random() * 1.5 + 0.8,
+        size: Math.random() * 3 + 2,
         alpha: 1,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        decay: Math.random() * 0.015 + 0.01,
+        gravity: 0.15,
+        wobble: 0,
+        wobbleSpeed: 0,
+        type: 'firework'
+      });
+    }
+
+    // Confetti falling squares
+    for (let i = 0; i < 40; i++) {
+      particles.push({
+        x: x + (Math.random() * 80 - 40),
+        y: y + (Math.random() * 60 - 30),
+        vx: Math.random() * 4 - 2,
+        vy: Math.random() * -3 - 2,
+        size: Math.random() * 6 + 4,
+        alpha: 1,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        decay: Math.random() * 0.01 + 0.005,
+        gravity: 0.08,
         wobble: Math.random() * Math.PI,
-        wobbleSpeed: Math.random() * 0.02 + 0.01
+        wobbleSpeed: Math.random() * 0.02 + 0.01,
+        type: 'confetti'
       });
     }
   };
 
-  // Canvas loop: gold particles & slow spotlight sweeps
+  // Canvas loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -114,11 +137,11 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Initialize small set of drifting golden particles (optimized for mobile)
+    // Initial drift gold dust
     const particles = particlesRef.current;
     if (particles.length === 0) {
-      const initialCount = window.innerWidth < 640 ? 15 : 30;
-      for (let i = 0; i < initialCount; i++) {
+      const count = window.innerWidth < 640 ? 15 : 30;
+      for (let i = 0; i < count; i++) {
         particles.push({
           x: Math.random() * window.innerWidth,
           y: Math.random() * window.innerHeight,
@@ -126,8 +149,12 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
           vy: Math.random() * -0.4 - 0.15,
           size: Math.random() * 1.2 + 0.4,
           alpha: Math.random() * 0.4 + 0.1,
+          color: '#D4AF37',
+          decay: 0,
+          gravity: 0,
           wobble: Math.random() * Math.PI,
-          wobbleSpeed: Math.random() * 0.02 + 0.01
+          wobbleSpeed: Math.random() * 0.02 + 0.01,
+          type: 'drift'
         });
       }
     }
@@ -135,11 +162,11 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
     const updateAndDraw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 1. Move & draw subtle golden spotlight target coordinates
+      // 1. Spotlight coordinates update
       const spot = spotlightRef.current;
       if (Math.abs(spot.x - spot.tx) < 1 && Math.abs(spot.y - spot.ty) < 1) {
-        spot.tx = 35 + Math.random() * 30; // 35% to 65%
-        spot.ty = 30 + Math.random() * 20; // 30% to 50%
+        spot.tx = 35 + Math.random() * 30;
+        spot.ty = 30 + Math.random() * 20;
       }
       spot.x += (spot.tx - spot.x) * 0.006;
       spot.y += (spot.ty - spot.y) * 0.006;
@@ -147,34 +174,61 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
       document.documentElement.style.setProperty('--spotlight-x', `${spot.x}%`);
       document.documentElement.style.setProperty('--spotlight-y', `${spot.y}%`);
 
-      // 2. Render drifting gold particles
-      if (activeScene >= 2) {
-        for (let i = particles.length - 1; i >= 0; i--) {
-          const p = particles[i];
-          p.wobble += p.wobbleSpeed;
-          p.x += p.vx + Math.sin(p.wobble) * 0.1;
-          p.y += p.vy;
+      // 2. Render celebration & drift particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.wobble += p.wobbleSpeed;
+        p.x += p.vx + (p.type === 'confetti' ? Math.sin(p.wobble) * 0.2 : Math.sin(p.wobble) * 0.1);
+        p.y += p.vy;
 
-          if (isOpen) {
-            // Apply decay to burst particles
-            p.alpha -= 0.015;
-            if (p.alpha <= 0) {
-              particles.splice(i, 1);
-              continue;
-            }
-          } else {
-            // Standard drift wrapping
-            if (p.y < -10) {
-              p.y = canvas.height + 10;
-              p.x = Math.random() * canvas.width;
-            }
+        if (p.type !== 'drift') {
+          p.vy += p.gravity;
+          p.alpha -= p.decay;
+          if (p.alpha <= 0) {
+            particles.splice(i, 1);
+            continue;
           }
+        } else {
+          // Wrap only background drift dust
+          if (p.y < -10) {
+            p.y = canvas.height + 10;
+            p.x = Math.random() * canvas.width;
+          }
+        }
 
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+
+        if (p.type === 'confetti') {
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.x * 0.05);
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        } else {
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(212, 175, 55, ${p.alpha})`;
           ctx.fill();
         }
+        ctx.restore();
+      }
+
+      // Generate colorful falling confetti continuously during opening transition
+      if (isOpen && Math.random() < 0.25) {
+        const colors = ['#ffd700', '#ff4d4d', '#ff9900', '#33cc33', '#3399ff'];
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: -10,
+          vx: Math.random() * 2 - 1,
+          vy: Math.random() * 2 + 1,
+          size: Math.random() * 6 + 4,
+          alpha: 1,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          decay: 0.008,
+          gravity: 0.05,
+          wobble: Math.random() * Math.PI,
+          wobbleSpeed: Math.random() * 0.02 + 0.01,
+          type: 'confetti'
+        });
       }
 
       animationFrameRef.current = requestAnimationFrame(updateAndDraw);
@@ -210,7 +264,7 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
           flex-direction: column;
           justify-content: center;
           align-items: center;
-          background-color: #0c0202; /* Warm dark backdrop */
+          background-color: #0c0202;
           color: #ffffff;
           font-family: 'Outfit', 'Inter', sans-serif;
           overflow: hidden;
@@ -221,7 +275,7 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
         .curtain-half {
           position: absolute;
           top: 0;
-          width: 50.5%; /* Slight overlap to prevent center gap */
+          width: 50.5%;
           height: 100%;
           background: 
             radial-gradient(ellipse at 50% 30%, rgba(239, 68, 68, 0.25) 0%, transparent 70%),
@@ -232,7 +286,7 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
               #540000 82%, #9c0000 88%, #6e0000 94%, #420000 100%);
           background-size: 100% 100%;
           box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.95), 0 0 40px rgba(0,0,0,0.6);
-          transition: transform 2.6s cubic-bezier(0.77, 0, 0.175, 1);
+          transition: transform 1.8s cubic-bezier(0.25, 1, 0.5, 1); /* Sped up from 2.6s */
           will-change: transform;
           z-index: 10;
         }
@@ -270,7 +324,7 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
           border-bottom: 5px double #D4AF37;
           box-shadow: 0 12px 25px rgba(0, 0, 0, 0.85);
           z-index: 20;
-          transition: transform 2.2s cubic-bezier(0.77, 0, 0.175, 1);
+          transition: transform 1.4s cubic-bezier(0.25, 1, 0.5, 1); /* Sped up from 2.2s */
           will-change: transform;
         }
 
@@ -348,7 +402,7 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
           border: 4px double #D4AF37;
           border-radius: 12px;
           box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(212, 175, 55, 0.12);
-          transition: opacity 0.8s ease, transform 0.8s ease, filter 0.8s ease;
+          transition: opacity 0.6s ease, transform 0.6s ease, filter 0.6s ease; /* Sped up from 0.8s */
           backdrop-filter: blur(8px);
           will-change: transform, opacity;
         }
