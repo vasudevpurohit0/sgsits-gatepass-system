@@ -1,112 +1,79 @@
 import React, { useEffect, useState, useRef } from 'react';
 
-interface Particle {
+interface GoldParticle {
   x: number;
   y: number;
   vx: number;
   vy: number;
-  color: string;
-  alpha: number;
-  decay: number;
   size: number;
-  gravity: number;
-  type: 'confetti' | 'firework';
+  alpha: number;
+  wobble: number;
+  wobbleSpeed: number;
 }
 
 export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isRendered, setIsRendered] = useState(true);
+  const [activeScene, setActiveScene] = useState<number>(1);
+  const [isLeaving, setIsLeaving] = useState<boolean>(false);
+  const [isRendered, setIsRendered] = useState<boolean>(true);
+  
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const particlesRef = useRef<Particle[]>([]);
+  const particlesRef = useRef<GoldParticle[]>([]);
   const animationFrameRef = useRef<number | null>(null);
+  const spotlightRef = useRef<{ x: number; y: number; tx: number; ty: number }>({
+    x: 50,
+    y: 40,
+    tx: 50,
+    ty: 40
+  });
 
-  // Trigger curtain opening sequence
-  const handleInaugurate = () => {
-    if (isOpen) return;
-    setIsOpen(true);
+  // Handle launch activation (Scene 6)
+  const handleLaunch = () => {
+    if (isLeaving || activeScene < 5) return;
+    setIsLeaving(true);
     sessionStorage.setItem('sgsits_inauguration_done', 'true');
 
-    // Trigger initial firework bursts in the center
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      createExplosion(centerX, centerY);
-      createExplosion(centerX - 150, centerY - 100);
-      createExplosion(centerX + 150, centerY - 100);
-    }
-
-    // Set timers to trigger more fireworks as the curtains part
-    const interval = setInterval(() => {
-      const canvas = canvasRef.current;
-      if (canvas && particlesRef.current.length < 300) {
-        createExplosion(
-          Math.random() * canvas.width,
-          Math.random() * (canvas.height * 0.7)
-        );
-      }
-    }, 400);
-
-    // End animation and unmount after curtains slide fully open
+    // Smooth transition delay to match CSS fade-out
     setTimeout(() => {
-      clearInterval(interval);
       setIsRendered(false);
       onComplete();
-    }, 3000);
+    }, 1200);
   };
 
-  // Listen to keyboard press (Enter or any key)
+  // Keyboard trigger (Enter key or Space) to launch once ready
   useEffect(() => {
-    const handleKeyDown = () => {
-      if (!isOpen) {
-        handleInaugurate();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (activeScene === 5 && !isLeaving && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        handleLaunch();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
+  }, [activeScene, isLeaving]);
 
-  // Particle explosion logic
-  const createExplosion = (x: number, y: number) => {
-    const colors = ['#ffd700', '#ff4d4d', '#ff9900', '#33cc33', '#3399ff', '#ff33cc', '#ffffff'];
-    const particles = particlesRef.current;
+  // Ceremonial sequence timers
+  useEffect(() => {
+    // Scene 2: 1.0s (Light expands, particles emerge, logo fades in)
+    const timer2 = setTimeout(() => setActiveScene(2), 1000);
 
-    // Firework burst particles (shoot outward in circle)
-    for (let i = 0; i < 60; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 6 + 4;
-      particles.push({
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: 1,
-        decay: Math.random() * 0.015 + 0.01,
-        size: Math.random() * 3 + 2,
-        gravity: 0.15,
-        type: 'firework',
-      });
-    }
+    // Scene 3: 3.0s (SGSITS Indore text, main title, subtitle, gold line draw)
+    const timer3 = setTimeout(() => setActiveScene(3), 3000);
 
-    // Confetti falling particles
-    for (let i = 0; i < 30; i++) {
-      particles.push({
-        x: x + (Math.random() * 60 - 30),
-        y: y + (Math.random() * 40 - 20),
-        vx: Math.random() * 4 - 2,
-        vy: Math.random() * -3 - 2,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: 1,
-        decay: Math.random() * 0.01 + 0.005,
-        size: Math.random() * 6 + 4,
-        gravity: 0.08,
-        type: 'confetti',
-      });
-    }
-  };
+    // Scene 4: 5.0s (Official Dedication staggered text)
+    const timer4 = setTimeout(() => setActiveScene(4), 5000);
 
-  // Canvas loop
+    // Scene 5: 7.2s (Launch Button reveals and pulses)
+    const timer5 = setTimeout(() => setActiveScene(5), 7200);
+
+    return () => {
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      clearTimeout(timer4);
+      clearTimeout(timer5);
+    };
+  }, []);
+
+  // Canvas loop: gold particles & slow spotlight sweeps
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -121,54 +88,64 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
+    // Initialize clean golden particles
+    const particles = particlesRef.current;
+    if (particles.length === 0) {
+      for (let i = 0; i < 40; i++) {
+        particles.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          vx: Math.random() * 0.4 - 0.2,
+          vy: Math.random() * -0.5 - 0.2,
+          size: Math.random() * 1.5 + 0.5,
+          alpha: Math.random() * 0.5 + 0.1,
+          wobble: Math.random() * Math.PI,
+          wobbleSpeed: Math.random() * 0.02 + 0.01
+        });
+      }
+    }
+
     const updateAndDraw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const particles = particlesRef.current;
 
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += p.gravity;
-        p.alpha -= p.decay;
+      // 1. Move & draw subtle golden spotlight target coordinates
+      const spot = spotlightRef.current;
+      // Change target randomly
+      if (Math.abs(spot.x - spot.tx) < 1 && Math.abs(spot.y - spot.ty) < 1) {
+        spot.tx = 30 + Math.random() * 40; // between 30% and 70%
+        spot.ty = 25 + Math.random() * 30; // between 25% and 55%
+      }
+      // Ease spotlight movement
+      spot.x += (spot.tx - spot.x) * 0.005;
+      spot.y += (spot.ty - spot.y) * 0.005;
 
-        if (p.alpha <= 0) {
-          particles.splice(i, 1);
-          continue;
-        }
+      // Draw custom CSS variable spotlight path (via updates to root styles)
+      document.documentElement.style.setProperty('--spotlight-x', `${spot.x}%`);
+      document.documentElement.style.setProperty('--spotlight-y', `${spot.y}%`);
 
-        ctx.save();
-        ctx.globalAlpha = p.alpha;
-        ctx.fillStyle = p.color;
+      // 2. Render drifting gold particles (Scene 2+)
+      if (activeScene >= 2) {
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.wobble += p.wobbleSpeed;
+          p.x += p.vx + Math.sin(p.wobble) * 0.15;
+          p.y += p.vy;
 
-        if (p.type === 'confetti') {
-          // Draw spinning rectangles for confetti
-          ctx.translate(p.x, p.y);
-          ctx.rotate(p.x * 0.05);
-          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-        } else {
-          // Draw standard circles for firework sparks
+          // Wrap around edges
+          if (p.y < -10) {
+            p.y = canvas.height + 10;
+            p.x = Math.random() * canvas.width;
+          }
+          if (p.x < -10 || p.x > canvas.width + 10) {
+            p.x = Math.random() * canvas.width;
+          }
+
+          // Draw particle
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(212, 175, 55, ${p.alpha})`;
           ctx.fill();
         }
-        ctx.restore();
-      }
-
-      // Keep generating confetti falling from the top once curtains start opening
-      if (isOpen && Math.random() < 0.25) {
-        particles.push({
-          x: Math.random() * canvas.width,
-          y: -10,
-          vx: Math.random() * 2 - 1,
-          vy: Math.random() * 2 + 1,
-          color: ['#ffd700', '#ff4d4d', '#ff9900', '#33cc33', '#3399ff'][Math.floor(Math.random() * 5)],
-          alpha: 1,
-          decay: 0.008,
-          size: Math.random() * 6 + 4,
-          gravity: 0.05,
-          type: 'confetti',
-        });
       }
 
       animationFrameRef.current = requestAnimationFrame(updateAndDraw);
@@ -180,15 +157,21 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
       window.removeEventListener('resize', resizeCanvas);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [isOpen]);
+  }, [activeScene]);
 
   if (!isRendered) return null;
 
   return (
-    <div className={`curtain-overlay ${isOpen ? 'open' : ''}`}>
-      {/* Self-contained Inauguration styles */}
+    <div className={`inaugural-overlay scene-${activeScene} ${isLeaving ? 'leaving' : ''}`}>
       <style>{`
-        .curtain-overlay {
+        /* Root properties */
+        :root {
+          --spotlight-x: 50%;
+          --spotlight-y: 40%;
+        }
+
+        /* Fullscreen Container */
+        .inaugural-overlay {
           position: fixed;
           top: 0;
           left: 0;
@@ -196,256 +179,359 @@ export const InaugurationCurtain: React.FC<{ onComplete: () => void }> = ({ onCo
           height: 100vh;
           z-index: 99999;
           display: flex;
+          flex-direction: column;
           justify-content: center;
           align-items: center;
-          overflow: hidden;
-          background-color: #0d0101;
+          background-color: #09090b; /* Matte black */
+          color: #ffffff;
           font-family: 'Outfit', 'Inter', sans-serif;
+          overflow: hidden;
+          transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1), filter 1.2s ease;
           user-select: none;
         }
 
-        /* Red Velvet Stage Curtains */
-        .curtain-half {
-          position: absolute;
-          top: 0;
-          width: 50.5%; /* Slight overlap to prevent seam gap */
-          height: 100%;
-          background: 
-            radial-gradient(ellipse at 50% 30%, rgba(239, 68, 68, 0.3) 0%, transparent 70%),
-            linear-gradient(to right, 
-              #4d0000 0%, #800000 6%, #b30000 12%, #660000 18%, 
-              #b30000 24%, #e60000 32%, #990000 40%, #b30000 48%, 
-              #ff3333 54%, #990000 60%, #b30000 66%, #e60000 74%, 
-              #660000 82%, #b30000 88%, #800000 94%, #4d0000 100%);
-          background-size: 100% 100%;
-          box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.95), 0 0 40px rgba(0,0,0,0.6);
-          transition: transform 2.8s cubic-bezier(0.77, 0, 0.175, 1);
-          will-change: transform;
-          z-index: 10;
-        }
-
-        .curtain-left {
-          left: 0;
-          transform-origin: left center;
-          border-right: 4px solid #ffd700;
-        }
-
-        .curtain-right {
-          right: 0;
-          transform-origin: right center;
-          border-left: 4px solid #ffd700;
-        }
-
-        /* Folding and gathering animation */
-        .curtain-overlay.open .curtain-left {
-          transform: translateX(-80%) scaleX(0.2);
-        }
-
-        .curtain-overlay.open .curtain-right {
-          transform: translateX(80%) scaleX(0.2);
-        }
-
-        /* Top Hanging Valance/Drape */
-        .curtain-valance {
+        /* Faint Spotlight overlay */
+        .inaugural-spotlight {
           position: absolute;
           top: 0;
           left: 0;
           width: 100%;
-          height: 110px;
-          background: linear-gradient(to bottom, 
-            #5a0000 0%, #800000 25%, #b30000 50%, #660000 75%, #3d0000 100%);
-          border-bottom: 6px double #ffd700;
-          box-shadow: 0 15px 30px rgba(0, 0, 0, 0.8);
-          z-index: 20;
-          transition: transform 2.4s cubic-bezier(0.77, 0, 0.175, 1);
-        }
-
-        .curtain-overlay.open .curtain-valance {
-          transform: translateY(-100%);
-        }
-
-        /* Plaque Container (Brass & Granite effect) */
-        .inauguration-plaque {
-          position: relative;
-          z-index: 150;
-          text-align: center;
-          background: linear-gradient(135deg, #111111 0%, #242424 100%);
-          border: 4px double #ffd700;
-          border-radius: 16px;
-          padding: 3rem 4rem;
-          max-width: 780px;
-          width: 90%;
-          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.15);
-          color: #ffffff;
-          transition: opacity 0.8s ease, transform 0.8s ease;
-          backdrop-filter: blur(12px);
-        }
-
-        .curtain-overlay.open .inauguration-plaque {
-          opacity: 0;
-          transform: scale(0.85) translateY(-50px);
+          height: 100%;
+          background: radial-gradient(circle 500px at var(--spotlight-x) var(--spotlight-y), rgba(212, 175, 55, 0.05) 0%, transparent 100%);
           pointer-events: none;
+          z-index: 2;
+          opacity: 0;
+          transition: opacity 2s ease;
+        }
+        .scene-2 .inaugural-spotlight,
+        .scene-3 .inaugural-spotlight,
+        .scene-4 .inaugural-spotlight,
+        .scene-5 .inaugural-spotlight {
+          opacity: 1;
         }
 
-        .institute-header {
-          font-size: 1.15rem;
+        /* Center Golden Light Source */
+        .center-glow {
+          position: absolute;
+          width: 400px;
+          height: 400px;
+          background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%);
+          opacity: 0;
+          transition: opacity 2.5s ease, transform 2.5s ease;
+          transform: scale(0.6);
+          pointer-events: none;
+          z-index: 1;
+        }
+        .scene-1 .center-glow {
+          opacity: 0.4;
+        }
+        .scene-2 .center-glow,
+        .scene-3 .center-glow,
+        .scene-4 .center-glow,
+        .scene-5 .center-glow {
+          opacity: 1;
+          transform: scale(1.4);
+        }
+
+        /* Canvas particles layer */
+        .particles-canvas {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 3;
+        }
+
+        /* Ceremony Plaque Container */
+        .ceremonial-plaque {
+          position: relative;
+          z-index: 10;
+          width: 100%;
+          max-width: 800px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          padding: 2rem;
+          margin-bottom: 4rem; /* offset for footer */
+        }
+
+        /* Logo reveal states */
+        .logo-container {
+          opacity: 0;
+          transform: translateY(16px) scale(0.98);
+          transition: opacity 1.5s cubic-bezier(0.25, 1, 0.5, 1), transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .scene-2 .logo-container,
+        .scene-3 .logo-container,
+        .scene-4 .logo-container,
+        .scene-5 .logo-container {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        .plaque-logo {
+          width: 76px;
+          height: 76px;
+          object-fit: contain;
+          filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.15));
+        }
+
+        /* Institution Header */
+        .inst-header {
+          font-size: 0.9rem;
           font-weight: 700;
-          letter-spacing: 0.15em;
+          letter-spacing: 0.22em;
           color: #e2e8f0;
-          margin-bottom: 0.25rem;
           text-transform: uppercase;
+          margin-top: 1.25rem;
+          opacity: 0;
+          transform: translateY(12px);
+          transition: opacity 1.2s ease 0.2s, transform 1.2s ease 0.2s;
+        }
+        .scene-3 .inst-header,
+        .scene-4 .inst-header,
+        .scene-5 .inst-header {
+          opacity: 0.7;
+          transform: translateY(0);
         }
 
-        .portal-title {
-          font-size: 2.1rem;
+        /* Main App Title */
+        .main-title {
+          font-size: 2.85rem;
           font-weight: 800;
-          letter-spacing: 0.03em;
-          line-height: 1.25;
-          margin-bottom: 1.5rem;
-          text-transform: uppercase;
-          background: linear-gradient(135deg, #ffffff 30%, #a1a1aa 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-
-        .plaque-divider {
-          height: 2px;
-          width: 60%;
-          margin: 1.5rem auto;
-          background: linear-gradient(to right, transparent, #ffd700, transparent);
-        }
-
-        .inaugurated-by-label {
-          font-size: 0.95rem;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: #a1a1aa;
-          margin-bottom: 0.5rem;
-        }
-
-        .minister-name {
-          font-size: 2.35rem;
-          font-weight: 800;
-          background: linear-gradient(135deg, #ffe066 0%, #f5af19 50%, #e65c00 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          text-shadow: 0 0 20px rgba(245, 175, 25, 0.4);
-          margin-bottom: 0.5rem;
-        }
-
-        .minister-title {
-          font-size: 1.05rem;
-          font-weight: 600;
-          color: #e2e8f0;
-          margin-bottom: 0.15rem;
-        }
-
-        .govt-label {
-          font-size: 0.85rem;
-          color: #a1a1aa;
           letter-spacing: 0.05em;
+          color: #ffffff;
+          margin-top: 1.25rem;
+          text-transform: uppercase;
+          opacity: 0;
+          transform: translateY(16px);
+          transition: opacity 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.4s, transform 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.4s;
+          text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        .scene-3 .main-title,
+        .scene-4 .main-title,
+        .scene-5 .main-title {
+          opacity: 1;
+          transform: translateY(0);
         }
 
-        .date-label {
-          font-size: 0.8rem;
-          color: #71717a;
-          margin-top: 2rem;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
+        /* Subtitle */
+        .tagline {
+          font-size: 1.05rem;
+          font-weight: 400;
+          color: #a1a1aa; /* Zinc-400 */
+          margin-top: 0.5rem;
+          letter-spacing: 0.01em;
+          opacity: 0;
+          transform: translateY(12px);
+          transition: opacity 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.6s, transform 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.6s;
+        }
+        .scene-3 .tagline,
+        .scene-4 .tagline,
+        .scene-5 .tagline {
+          opacity: 0.8;
+          transform: translateY(0);
         }
 
-        /* Glowing Inaugurate Button */
-        .inaugurate-button {
-          margin-top: 2rem;
-          padding: 0.9rem 2.25rem;
-          font-size: 0.95rem;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: #0d0101;
-          background: linear-gradient(135deg, #ffd700 0%, #f5af19 100%);
-          border: none;
+        /* Gold Divider Drawing effect */
+        .gold-divider {
+          position: relative;
+          height: 1px;
+          width: 220px;
+          background: linear-gradient(to right, transparent, #D4AF37 50%, transparent);
+          margin: 2.25rem auto;
+          transform: scaleX(0);
+          transition: transform 1.8s cubic-bezier(0.25, 1, 0.5, 1) 0.8s;
+          overflow: hidden;
+        }
+        .scene-3 .gold-divider,
+        .scene-4 .gold-divider,
+        .scene-5 .gold-divider {
+          transform: scaleX(1);
+        }
+
+        /* Gold divider streak animation on exit */
+        .gold-divider.streak::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 50%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, #ffffff, transparent);
+          animation: streak-glow 0.8s ease-out forwards;
+        }
+        @keyframes streak-glow {
+          0% { left: -50%; }
+          100% { left: 150%; }
+        }
+
+        /* Staggered Dedication Layout */
+        .dedication-box {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.35rem;
+          margin-top: 0.75rem;
+        }
+        .ded-line {
+          opacity: 0;
+          transform: translateY(12px);
+          transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1), transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .scene-4 .ded-line.line-1, .scene-5 .ded-line.line-1 { opacity: 0.5; transform: translateY(0); transition-delay: 0.1s; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.12em; color: #a1a1aa; }
+        .scene-4 .ded-line.line-2, .scene-5 .ded-line.line-2 { 
+          opacity: 1; 
+          transform: translateY(0); 
+          transition-delay: 0.4s; 
+          font-size: 1.85rem; 
+          font-weight: 700; 
+          color: #D4AF37; 
+          margin: 0.25rem 0;
+          text-shadow: 0 0 15px rgba(212, 175, 55, 0.18);
+        }
+        .scene-4 .ded-line.line-3, .scene-5 .ded-line.line-3 { opacity: 0.85; transform: translateY(0); transition-delay: 0.7s; font-size: 1rem; font-weight: 500; color: #f4f4f5; }
+        .scene-4 .ded-line.line-4, .scene-5 .ded-line.line-4 { opacity: 0.65; transform: translateY(0); transition-delay: 1.0s; font-size: 0.85rem; color: #a1a1aa; }
+        .scene-4 .ded-line.line-5, .scene-5 .ded-line.line-5 { opacity: 0.4; transform: translateY(0); transition-delay: 1.3s; font-size: 0.8rem; letter-spacing: 0.08em; margin-top: 1rem; color: #71717a; }
+
+        /* Launch Button */
+        .btn-wrapper {
+          opacity: 0;
+          transform: translateY(16px);
+          transition: opacity 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.2s, transform 1.5s cubic-bezier(0.25, 1, 0.5, 1) 0.2s;
+          margin-top: 3.5rem;
+        }
+        .scene-5 .btn-wrapper {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .btn-launch {
+          position: relative;
+          padding: 0.95rem 2.85rem;
+          font-size: 0.9rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          color: #D4AF37;
+          background: transparent;
+          border: 1px solid rgba(212, 175, 55, 0.4);
           border-radius: 30px;
           cursor: pointer;
-          transition: transform 0.2s, filter 0.2s;
-          animation: pulse-gold 2s infinite;
+          overflow: hidden;
+          transition: all 0.3s ease;
+          animation: gold-pulse 2s infinite;
+        }
+        .btn-launch:hover:not(:disabled) {
+          border-color: #D4AF37;
+          box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+          color: #ffffff;
+          background: rgba(212, 175, 55, 0.08);
+          transform: translateY(-1px);
+        }
+        .btn-launch:active:not(:disabled) {
+          transform: translateY(1px);
+        }
+        .btn-launch:disabled {
+          cursor: not-allowed;
+          opacity: 0.5;
+        }
+        
+        @keyframes gold-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+          70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
         }
 
-        .inaugurate-button:hover {
-          transform: scale(1.05);
-          filter: brightness(1.1);
-        }
-
-        .inaugurate-button:active {
-          transform: scale(0.98);
-        }
-
-        /* Fireworks Canvas */
-        .fireworks-canvas {
+        /* Ceremonial Footer */
+        .ceremonial-footer {
           position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none;
-          z-index: 110;
+          bottom: 2rem;
+          text-align: center;
+          font-size: 0.7rem;
+          color: #52525b; /* Zinc-600 */
+          letter-spacing: 0.1em;
+          line-height: 1.7;
+          text-transform: uppercase;
+          z-index: 10;
+          opacity: 0;
+          transition: opacity 1.8s ease 1s;
+        }
+        .scene-3 .ceremonial-footer,
+        .scene-4 .ceremonial-footer,
+        .scene-5 .ceremonial-footer {
+          opacity: 0.55;
         }
 
-        @keyframes pulse-gold {
-          0% {
-            box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6);
-          }
-          70% {
-            box-shadow: 0 0 0 15px rgba(255, 215, 0, 0);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
-          }
+        /* Leaving state transition */
+        .inaugural-overlay.leaving {
+          opacity: 0;
+          filter: blur(10px);
+          transform: scale(0.985);
         }
 
         @media (max-width: 640px) {
-          .inauguration-plaque {
-            padding: 2rem 1.5rem;
-          }
-          .portal-title {
-            font-size: 1.5rem;
-          }
-          .minister-name {
-            font-size: 1.75rem;
-          }
+          .main-title { font-size: 2.1rem; }
+          .minister-name { font-size: 1.5rem; }
+          .ceremonial-plaque { padding: 1.25rem; }
         }
       `}</style>
 
-      {/* Top Valance */}
-      <div className="curtain-valance" />
+      {/* Backdrop spotlight */}
+      <div className="inaugural-spotlight" />
 
-      {/* Left Curtain */}
-      <div className="curtain-half curtain-left" />
+      {/* Centered glow light */}
+      <div className="center-glow" />
 
-      {/* Right Curtain */}
-      <div className="curtain-half curtain-right" />
+      {/* Floating Gold Particles Canvas */}
+      <canvas ref={canvasRef} className="particles-canvas" />
 
-      {/* Plaque text details */}
-      <div className="inauguration-plaque">
-        <div className="institute-header">SGSITS Indore</div>
-        <div className="portal-title">Gate Pass Management System</div>
-        
-        <div className="plaque-divider" />
-        
-        <div className="inaugurated-by-label">Inaugurated By</div>
-        <div className="minister-name">Shri Inder Singh Parmar</div>
-        <div className="minister-title">Hon'ble Education Minister</div>
-        <div className="govt-label">Government of Madhya Pradesh</div>
-        
-        <div className="date-label">July 7, 2026</div>
-        
-        <button className="inaugurate-button" onClick={handleInaugurate}>
-          Click or Press Any Key to Launch
-        </button>
+      {/* Plaque content */}
+      <div className="ceremonial-plaque">
+        {/* SGSITS Logo */}
+        <div className="logo-container">
+          <img src="/SGSITS_LOGO.png" alt="SGSITS Logo" className="plaque-logo" />
+        </div>
+
+        {/* Inst Name */}
+        <div className="inst-header">SGSITS Indore</div>
+
+        {/* Title */}
+        <div className="main-title">SGSITS Smart Access</div>
+
+        {/* Subtitle */}
+        <div className="tagline">Digital Campus Access & Visitor Management Platform</div>
+
+        {/* Gold Divider Line */}
+        <div className={`gold-divider ${isLeaving ? 'streak' : ''}`} />
+
+        {/* Dedication text (Scene 4+) */}
+        <div className="dedication-box">
+          <div className="ded-line line-1">Inaugurated by</div>
+          <div className="ded-line line-2">Shri Inder Singh Parmar</div>
+          <div className="ded-line line-3">Hon'ble Higher Education Minister</div>
+          <div className="ded-line line-4">Government of Madhya Pradesh</div>
+          <div className="ded-line line-5">07 July 2026</div>
+        </div>
+
+        {/* Launch Button (Scene 5+) */}
+        <div className="btn-wrapper">
+          <button 
+            className="btn-launch" 
+            onClick={handleLaunch} 
+            disabled={activeScene < 5 || isLeaving}
+          >
+            Launch Portal
+          </button>
+        </div>
       </div>
 
-      {/* Celebration canvas */}
-      <canvas ref={canvasRef} className="fireworks-canvas" />
+      {/* Footer */}
+      <div className="ceremonial-footer">
+        Designed & Developed at SGSITS<br/>
+        Digital Campus Initiative
+      </div>
     </div>
   );
 };
