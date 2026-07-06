@@ -5,12 +5,20 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { loginFormSchema } from '../../schemas/auth.schema';
 import { useAuth } from '../../hooks/useAuth';
 import { AlertCircle } from 'lucide-react';
+import { InaugurationCurtain } from '../../components/InaugurationCurtain';
 
 export const LoginPage: React.FC = () => {
   const { loginUser, isLoading, error, mfaRequiredEmail } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [localError, setLocalError] = useState<string | null>(null);
+
+  // Inauguration curtain state
+  const [showCurtain, setShowCurtain] = useState(() => {
+    const queryRequested = window.location.search.includes('inauguration=true') || window.location.search.includes('inaugurate=true');
+    const alreadyDone = sessionStorage.getItem('sgsits_inauguration_done') === 'true';
+    return queryRequested || !alreadyDone;
+  });
 
   // Redirect back to the originally requested route (e.g. terminal verification with token) or default to dashboard
   const from = location.state?.from
@@ -128,7 +136,9 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="auth-form-container">
+    <>
+      {showCurtain && <InaugurationCurtain onComplete={() => setShowCurtain(false)} />}
+      <div className="auth-form-container">
       <h3>{mfaRequiredEmail ? 'Multi-Factor Verification' : 'Sign In'}</h3>
       
       {(error || localError) && (
@@ -227,6 +237,7 @@ export const LoginPage: React.FC = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 
