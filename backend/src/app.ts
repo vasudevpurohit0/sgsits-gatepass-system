@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import morgan from 'morgan';
 import { env } from './config/env';
 import { logger } from './utils/logger';
 import ApiResponse from './utils/ApiResponse';
@@ -20,12 +21,12 @@ app.use(
       if (env.NODE_ENV === 'development') {
         normalizedOrigins.push('http://localhost:5173');
       }
-      
-      const isAllowed = 
-        !origin || 
+
+      const isAllowed =
+        !origin ||
         normalizedOrigins.includes(origin.replace(/\/$/, '')) ||
         origin.endsWith('.vercel.app');
-        
+
       if (isAllowed) {
         callback(null, true);
       } else {
@@ -41,22 +42,16 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Custom request logger middleware using Winston
-app.use((req, res, next) => {
-  const start = Date.now();
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    logger.info({
-      method: req.method,
-      url: req.originalUrl || req.url,
-      ip: req.ip,
-      statusCode: res.statusCode,
-      durationMs: duration,
-      userAgent: req.get('user-agent'),
-    });
-  });
-  next();
-});
+// HTTP request logging with Morgan
+app.use(
+  morgan('combined', {
+    stream: {
+      write: (message: string) => {
+        logger.http(message.trim());
+      },
+    },
+  })
+);
 
 // Health check endpoint
 app.get(`${env.API_PREFIX}/health`, async (_req, res) => {
@@ -202,7 +197,7 @@ app.use((req, _res, next) => {
 // Global error handling middleware
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const isDev = env.NODE_ENV === 'development';
-  
+
   if (err instanceof ApiError) {
     logger.error(`API Error: ${err.message}`, { statusCode: err.statusCode, errors: err.errors });
     return res.status(err.statusCode).json({
