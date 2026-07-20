@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import { useAuth } from '../hooks/useAuth';
 import { clearCredentials } from '../redux/slices/authSlice';
 import { AlertCircle, RefreshCw, LogIn } from 'lucide-react';
+import { API_BASE_URL } from '../services/api';
 import type { UserRole } from '../types/auth.types';
 
 interface ProtectedRouteProps {
@@ -42,7 +43,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     checkAuthSession();
   };
 
-  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+  const apiBaseUrl = API_BASE_URL;
 
   // Show indicator if session details are currently loading
   if (isLoading) {

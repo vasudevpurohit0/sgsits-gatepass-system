@@ -4,9 +4,30 @@ import axios from 'axios';
 // to the Railway backend server-side, bypassing CORS entirely.
 // For local development, create a frontend/.env file with:
 //   VITE_API_URL=http://localhost:5000/api/v1
-const API_BASE_URL = import.meta.env.DEV
-  ? (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1')
-  : '/api/v1';
+const normalizeApiBaseUrl = (value?: string) => {
+  const fallback = '/api/v1';
+  if (!value?.trim()) return fallback;
+
+  const trimmed = value.trim().replace(/\/+$/, '');
+  if (trimmed === '/api/v1' || trimmed.endsWith('/api/v1')) {
+    return trimmed;
+  }
+
+  if (trimmed === '/api' || trimmed.endsWith('/api')) {
+    return `${trimmed}/v1`;
+  }
+
+  if (trimmed.startsWith('http')) {
+    return `${trimmed}/api/v1`;
+  }
+
+  return `${trimmed}/api/v1`;
+};
+
+const productionApiUrl = 'https://sgsits-gatepass-system-production-825c.up.railway.app';
+export const API_BASE_URL = normalizeApiBaseUrl(
+  import.meta.env.PROD ? productionApiUrl : import.meta.env.VITE_API_URL
+);
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -99,11 +120,11 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        
+
         // Log out user if refresh token fails (expired or revoked)
         localStorage.removeItem('accessToken');
         window.dispatchEvent(new Event('auth-logout'));
-        
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
