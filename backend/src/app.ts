@@ -12,20 +12,26 @@ const app = express();
 // Set security HTTP headers
 app.use(helmet());
 
-// Enable CORS with dynamic settings based on environment
+// Enable CORS with explicit support for the deployed frontend and local development
+const allowedOrigins = [
+  env.CORS_ORIGIN,
+  'https://sgsits-gatepass-system-6auz.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter(Boolean) as string[];
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowedOrigins = [env.CORS_ORIGIN];
-      const normalizedOrigins = allowedOrigins.map(o => o.replace(/\/$/, ''));
-      if (env.NODE_ENV === 'development') {
-        normalizedOrigins.push('http://localhost:5173');
+      if (!origin) {
+        callback(null, true);
+        return;
       }
 
+      const normalizedOrigin = origin.replace(/\/$/, '');
       const isAllowed =
-        !origin ||
-        normalizedOrigins.includes(origin.replace(/\/$/, '')) ||
-        origin.endsWith('.vercel.app');
+        allowedOrigins.some((allowedOrigin) => allowedOrigin.replace(/\/$/, '') === normalizedOrigin) ||
+        normalizedOrigin.endsWith('.vercel.app');
 
       if (isAllowed) {
         callback(null, true);
@@ -34,7 +40,8 @@ app.use(
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
 
