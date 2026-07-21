@@ -106,8 +106,16 @@ export const respondToSecurityPass = asyncHandler(async (req: Request, res: Resp
     return;
   }
 
+  const emailWarning = result.status === 'approved' ? result.emailWarning : undefined;
+
   res.status(200).json(
-    new ApiResponse(200, { status: result.status, pass: result.pass }, `Security Pass successfully ${result.status}`)
+    new ApiResponse(
+      200,
+      { status: result.status, pass: result.pass },
+      emailWarning
+        ? `Security Pass successfully approved, but warning: ${emailWarning}`
+        : `Security Pass successfully ${result.status}`
+    )
   );
 });
 

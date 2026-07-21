@@ -22,7 +22,7 @@ interface SecurityApprovalTokenPayload {
 }
 
 export type SecurityPassResponseResult =
-  | { status: 'approved'; pass: Pass }
+  | { status: 'approved'; pass: Pass; emailWarning?: string }
   | { status: 'rejected'; pass: Pass }
   | { status: 'already_processed' }
   | { status: 'invalid' };
@@ -219,20 +219,65 @@ export class SecurityPassService {
         approvalTokenExpiry: null,
       });
 
-      const updatedPass = await this.passService.generateAndAttachQR(passId, pass.passNumber, pass.validTo, frontendUrl);
+      // Approval is already committed above; don't let a storage hiccup on the QR
+      // step surface as a hard failure to the approver (getPassById retries this
+      // lazily on read, so the pass will self-heal once storage is reachable).
+      let updatedPass = pass;
+      try {
+        updatedPass = await this.passService.generateAndAttachQR(passId, pass.passNumber, pass.validTo, frontendUrl);
+      } catch (err) {
+        logger.error(`❌ QR generation failed for approved pass "${passId}" (will retry on next view):`, err);
+      }
       const finalPass = (await this.passRepository.findById(passId)) as any;
+      let emailWarning: string | undefined = undefined;
 
       if (finalPass) {
+        // Requester notification stays background/best-effort.
         setImmediate(() => {
           this.emailService.sendSecurityPassApprovedNotification(finalPass.requester.email, finalPass).catch(err => {
             logger.error('❌ Background security pass approved email to creator failed:', err);
           });
-          if (finalPass.visitor.email) {
-            this.emailService.sendSecurityPassApprovedNotification(finalPass.visitor.email, finalPass).catch(err => {
-              logger.error('❌ Background security pass approved email to visitor failed:', err);
-            });
-          }
         });
+
+        // Visitor email is the actual deliverable (pass + QR) — send it synchronously
+        // and log the outcome so a delivery failure is visible instead of silently lost.
+        if (finalPass.visitor.email) {
+          try {
+            const emailResult = await this.emailService.sendSecurityPassApprovedNotification(finalPass.visitor.email, finalPass);
+            await prisma.emailDeliveryLog.create({
+              data: {
+                passId: finalPass.id,
+                passNumber: finalPass.passNumber,
+                visitorName: finalPass.visitor.name,
+                visitorEmail: finalPass.visitor.email,
+                approvalTimestamp: finalPass.approvedAt || new Date(),
+                status: emailResult.success ? 'SUCCESS' : 'FAILED',
+                sentTimestamp: emailResult.success ? new Date() : null,
+                errorMessage: emailResult.error || null,
+              },
+            });
+            if (!emailResult.success) {
+              emailWarning = emailResult.error;
+            }
+          } catch (err: any) {
+            logger.error('❌ Security pass approved email to visitor failed:', err);
+            await prisma.emailDeliveryLog.create({
+              data: {
+                passId: finalPass.id,
+                passNumber: finalPass.passNumber,
+                visitorName: finalPass.visitor.name,
+                visitorEmail: finalPass.visitor.email,
+                approvalTimestamp: finalPass.approvedAt || new Date(),
+                status: 'FAILED',
+                sentTimestamp: null,
+                errorMessage: err.message || String(err),
+              },
+            });
+            emailWarning = err.message || String(err);
+          }
+        } else {
+          emailWarning = 'No visitor email on file — pass/QR email was not sent.';
+        }
 
         await this.notificationService.createNotification(
           finalPass.requesterId,
@@ -243,7 +288,9 @@ export class SecurityPassService {
         );
       }
 
-      return { status: 'approved', pass: updatedPass };
+      return emailWarning
+        ? { status: 'approved', pass: updatedPass, emailWarning }
+        : { status: 'approved', pass: updatedPass };
     } else {
       const updatedPass = await this.passRepository.update(passId, {
         status: PassStatus.REJECTED,

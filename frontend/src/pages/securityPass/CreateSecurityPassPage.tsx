@@ -80,8 +80,11 @@ export const CreateSecurityPassPage: React.FC = () => {
 
     setLoading(true);
     try {
-      let formattedPhone = (phone || '').trim();
+      // Strip everything but digits/leading "+" so spaces, dashes, parens etc.
+      // (all common in how people type phone numbers) don't break the E.164 check.
+      let formattedPhone = (phone || '').trim().replace(/[^\d+]/g, '');
       if (!formattedPhone.startsWith('+')) {
+        formattedPhone = formattedPhone.replace(/^0+/, ''); // drop local leading 0
         formattedPhone = `+91${formattedPhone}`;
       }
 

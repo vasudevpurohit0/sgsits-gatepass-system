@@ -225,9 +225,22 @@ export class PassService {
    * Retrieve a single pass by ID, appending presigned URL for visitor photo and QR code
    */
   async getPassById(id: string): Promise<any> {
-    const pass = (await this.passRepository.findById(id)) as any;
+    let pass = (await this.passRepository.findById(id)) as any;
     if (!pass) {
       throw new ApiError(404, 'Pass not found');
+    }
+
+    // Self-heal: an approval can succeed while the QR upload fails (e.g. storage
+    // outage), leaving an APPROVED/ACTIVE pass permanently stuck without a QR.
+    // Retry attaching the QR on read instead of leaving it locked forever.
+    const canHaveQr = pass.status === PassStatus.APPROVED || pass.status === PassStatus.ACTIVE;
+    if (canHaveQr && !pass.qrImageKey) {
+      try {
+        pass = await this.generateAndAttachQR(pass.id, pass.passNumber, pass.validTo, process.env.CORS_ORIGIN);
+        pass = (await this.passRepository.findById(id)) as any;
+      } catch (err) {
+        logger.error(`❌ Retry QR generation failed for pass "${id}":`, err);
+      }
     }
 
     let visitorPhotoUrl = undefined;

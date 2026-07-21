@@ -322,8 +322,16 @@ export class EmailService {
       try {
         const qrBuffer = await this.storageService.getFileBuffer(pass.qrImageKey);
         attachments.push({ filename: 'qrcode.png', content: qrBuffer, cid: 'qrcode' });
+
+        const pdfBuffer = await this.pdfService.generatePassPdf(pass, qrBuffer);
+        attachments.push({
+          filename: `SGSITS-Security-Pass-${pass.passNumber}.pdf`,
+          content: pdfBuffer,
+          contentType: 'application/pdf',
+        });
       } catch (err: any) {
-        logger.error('❌ Failed to attach QR for approved security pass email:', err);
+        logger.error('❌ Failed to attach QR or generate PDF for approved security pass email:', err);
+        return { success: false, error: `PDF generation failed: ${err.message}` };
       }
     }
 
@@ -331,7 +339,7 @@ export class EmailService {
       <div style="font-family: Arial, sans-serif; padding: 25px; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 8px; line-height: 1.6; color: #334155;">
         <p>Dear ${pass.visitor?.name || 'User'},</p>
         <p>The Security Pass [${pass.passNumber}] for visitor <strong>${pass.visitor?.name}</strong> has been approved by ${pass.approvedBy || 'a security approver'}.</p>
-        ${pass.qrImageKey ? '<p>QR code is attached. Present it at the entry gate.</p><img src="cid:qrcode" alt="QR Code" style="width:200px;height:200px;" />' : ''}
+        ${pass.qrImageKey ? '<p>Your pass PDF and QR code are attached. Present the QR code at the entry gate.</p><img src="cid:qrcode" alt="QR Code" style="width:200px;height:200px;" />' : ''}
         <br/>
         <p>Regards,<br/>Security Team</p>
       </div>

@@ -125,8 +125,9 @@ export const CreatePassPage: React.FC = () => {
       allowedGates.forEach(gate => formData.append('allowedGates', gate));
 
       // Visitor Details
-      let formattedPhone = (visitorPhone || '').trim();
+      let formattedPhone = (visitorPhone || '').trim().replace(/[^\d+]/g, '');
       if (!formattedPhone.startsWith('+')) {
+        formattedPhone = formattedPhone.replace(/^0+/, '');
         formattedPhone = `+91${formattedPhone}`;
       }
 
